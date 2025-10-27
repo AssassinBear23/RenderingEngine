@@ -2,27 +2,18 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <memory>
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
-
-#include "core/mesh.h"
+#include "Rendering/mesh.h"
 #include "core/assimpLoader.h"
-#include "core/texture.h"
+#include "Rendering/texture.h"
 #include "core/camera.h"
 
-//#define MAC_CLION
 #define VSTUDIO
 
-#ifdef MAC_CLION
-#include "imgui.h"
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
-#endif
-
 #ifdef VSTUDIO
-// Note: install imgui with:
-//     ./vcpkg.exe install imgui[glfw-binding,opengl3-binding]
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -31,7 +22,7 @@
 int g_width = 800;
 int g_height = 600;
 std::unordered_map<int, bool> g_keymap;
-core::Camera* editorCamera;
+std::unique_ptr<core::Camera> editorCamera;
 
 static bool g_rotating = false;
 static bool g_firstMouse = true;
@@ -75,6 +66,7 @@ GLuint generateShader(const std::string& shaderPath, GLuint shaderType) {
 }
 
 void keyboardInputHandling(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
     if (action == GLFW_PRESS) {
         g_keymap[key] = true;
     }
@@ -95,6 +87,7 @@ void processInputs(GLFWwindow* window, const float deltaTime) {
 }
 
 void mouseInputHandling(GLFWwindow* window, double xpos, double ypos) {
+    ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
     if (!g_rotating) return;
 
     if (g_firstMouse) {
@@ -114,7 +107,16 @@ void mouseInputHandling(GLFWwindow* window, double xpos, double ypos) {
         static_cast<float>(yoffset)));
 }
 
+void scrollCallback(GLFWwindow* window, double xoff, double yoff) {
+    ImGui_ImplGlfw_ScrollCallback(window, xoff, yoff);
+}
+
+void charCallback(GLFWwindow* window, unsigned int c) {
+    ImGui_ImplGlfw_CharCallback(window, c);
+}
+
 void mouseButtonInputHandling(GLFWwindow* window, int button, int action, int mods) {
+    ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
         g_rotating = true;
         g_firstMouse = true;
@@ -139,9 +141,6 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
 
     GLFWwindow* window = glfwCreateWindow(g_width, g_height, "LearnOpenGL", nullptr, nullptr);
     if (window == nullptr) {
@@ -164,7 +163,7 @@ int main() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
     //Setup platforms
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplGlfw_InitForOpenGL(window, false);
     ImGui_ImplOpenGL3_Init("#version 400");
 
     glEnable(GL_DEPTH_TEST);
@@ -215,16 +214,19 @@ int main() {
     glClearColor(clearColor.r,
         clearColor.g, clearColor.b, clearColor.a);
 
-    editorCamera = new core::Camera(glm::vec3(0.0f, 0.0f, 10.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f));
+    editorCamera = std::make_unique<core::Camera>(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     glfwSetKeyCallback(window, keyboardInputHandling);
     glfwSetMouseButtonCallback(window, mouseButtonInputHandling);
     glfwSetCursorPosCallback(window, mouseInputHandling);
+    glfwSetScrollCallback(window, scrollCallback);
+    glfwSetCharCallback(window, charCallback);
 
     GLint mvpMatrixUniform = glGetUniformLocation(modelShaderProgram, "mvpMatrix");
     GLint textureModelUniform = glGetUniformLocation(textureShaderProgram, "mvpMatrix");
     GLint textureUniform = glGetUniformLocation(textureShaderProgram, "text");
+
+    GLenum drawMode = GL_TRIANGLES;
 
     double currentTime = glfwGetTime();
     double finishFrameTime = 0.0;
@@ -232,16 +234,29 @@ int main() {
     float rotationStrength = 100.0f;
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glfwPollEvents();
+
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        ImGui::Begin("Raw Engine v2");
+        ImGui::Begin("Raw Engine v2", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Text("Hello :)");
+        if (ImGui::Button("Toggle Wireframe"))
+        {
+            if (drawMode == GL_TRIANGLES)
+                drawMode = GL_LINES;
+            else
+                drawMode = GL_TRIANGLES;
+        }
         ImGui::End();
 
         glm::mat4 view = editorCamera->getViewMatrix();
         glm::mat4 projection = editorCamera->getProjectionMatrix(static_cast<float>(g_width), static_cast<float>(g_height));
+
+        if (!io.WantCaptureKeyboard) {
+            processInputs(window, deltaTime);
+        }
 
         processInputs(window, deltaTime);
 
@@ -252,20 +267,19 @@ int main() {
         glActiveTexture(GL_TEXTURE0);
         glUniform1i(textureUniform, 0);
         glBindTexture(GL_TEXTURE_2D, cmgtGatoTexture.getId());
-        quadModel.render();
+        quadModel.render(drawMode);
         glBindVertexArray(0);
         glActiveTexture(GL_TEXTURE0);
 
         glUseProgram(modelShaderProgram);
         glUniformMatrix4fv(mvpMatrixUniform, 1, GL_FALSE, glm::value_ptr(projection * view * suzanne.getModelMatrix()));
-        suzanne.render();
+        suzanne.render(drawMode);
         glBindVertexArray(0);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
-        glfwPollEvents();
         finishFrameTime = glfwGetTime();
         deltaTime = static_cast<float>(finishFrameTime - currentTime);
         currentTime = finishFrameTime;
@@ -274,9 +288,8 @@ int main() {
     glDeleteProgram(modelShaderProgram);
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
 
-    delete editorCamera;
+    ImGui::DestroyContext();
     glfwTerminate();
     return 0;
 }
