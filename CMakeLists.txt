@@ -1,0 +1,21 @@
+﻿# CMakeList.txt : CMake project for FinalEngine, include source and define
+# project specific logic here.
+#
+cmake_minimum_required (VERSION 3.8)
+
+# Enable Hot Reload for MSVC compilers if supported.
+if (POLICY CMP0141)
+  cmake_policy(SET CMP0141 NEW)
+  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+endif()
+
+project ("FinalEngine")
+
+# Add source to this project's executable.
+add_executable (FinalEngine "main.cpp"  "core/assimpLoader.cpp" "core/assimpLoader.h" "core/camera.cpp" "core/camera.h" "core/mesh.cpp" "core/mesh.h" "core/model.cpp" "core/model.h" "core/texture.cpp" "core/texture.h" "core/vertex.h" "imgui/backends/imgui_impl_allegro5.cpp" "imgui/backends/imgui_impl_allegro5.h" "imgui/backends/imgui_impl_android.cpp" "imgui/backends/imgui_impl_android.h" "imgui/backends/imgui_impl_dx10.cpp" "imgui/backends/imgui_impl_dx10.h" "imgui/backends/imgui_impl_dx11.cpp" "imgui/backends/imgui_impl_dx11.h" "imgui/backends/imgui_impl_dx12.cpp" "imgui/backends/imgui_impl_dx12.h" "imgui/backends/imgui_impl_dx9.cpp" "imgui/backends/imgui_impl_dx9.h" "imgui/backends/imgui_impl_glfw.cpp" "imgui/backends/imgui_impl_glfw.h" "imgui/backends/imgui_impl_glut.cpp" "imgui/backends/imgui_impl_glut.h" "imgui/backends/imgui_impl_metal.h" "imgui/backends/imgui_impl_opengl2.cpp" "imgui/backends/imgui_impl_opengl2.h" "imgui/backends/imgui_impl_opengl3.cpp" "imgui/backends/imgui_impl_opengl3.h" "imgui/backends/imgui_impl_opengl3_loader.h" "imgui/backends/imgui_impl_osx.h" "imgui/backends/imgui_impl_sdl2.cpp" "imgui/backends/imgui_impl_sdl2.h" "imgui/backends/imgui_impl_sdl3.cpp" "imgui/backends/imgui_impl_sdl3.h" "imgui/backends/imgui_impl_sdlgpu3.cpp" "imgui/backends/imgui_impl_sdlgpu3.h" "imgui/backends/imgui_impl_sdlgpu3_shaders.h" "imgui/backends/imgui_impl_sdlrenderer2.cpp" "imgui/backends/imgui_impl_sdlrenderer2.h" "imgui/backends/imgui_impl_sdlrenderer3.cpp" "imgui/backends/imgui_impl_sdlrenderer3.h" "imgui/backends/imgui_impl_vulkan.cpp" "imgui/backends/imgui_impl_vulkan.h" "imgui/backends/imgui_impl_wgpu.cpp" "imgui/backends/imgui_impl_wgpu.h" "imgui/backends/imgui_impl_win32.cpp" "imgui/backends/imgui_impl_win32.h" "imgui/examples/example_allegro5/imconfig_allegro5.h" "imgui/examples/example_allegro5/main.cpp" "imgui/examples/example_android_opengl3/main.cpp" "imgui/examples/example_glfw_opengl2/main.cpp" "imgui/examples/example_glfw_opengl3/main.cpp" "imgui/examples/example_glfw_vulkan/main.cpp" "imgui/examples/example_glfw_wgpu/main.cpp" "imgui/examples/example_glut_opengl2/main.cpp" "imgui/examples/example_null/main.cpp" "imgui/examples/example_sdl2_directx11/main.cpp" "imgui/examples/example_sdl2_opengl2/main.cpp" "imgui/examples/example_sdl2_opengl3/main.cpp" "imgui/examples/example_sdl2_sdlrenderer2/main.cpp" "imgui/examples/example_sdl2_vulkan/main.cpp" "imgui/examples/example_sdl3_opengl3/main.cpp" "imgui/examples/example_sdl3_sdlgpu3/main.cpp" "imgui/examples/example_sdl3_sdlrenderer3/main.cpp" "imgui/examples/example_sdl3_vulkan/main.cpp" "imgui/examples/example_win32_directx10/main.cpp" "imgui/examples/example_win32_directx11/main.cpp" "imgui/examples/example_win32_directx12/main.cpp" "imgui/examples/example_win32_directx9/main.cpp" "imgui/examples/example_win32_opengl3/main.cpp" "imgui/examples/example_win32_vulkan/main.cpp" "imgui/examples/libs/emscripten/emscripten_mainloop_stub.h" "imgui/examples/libs/glfw/include/GLFW/glfw3.h" "imgui/examples/libs/glfw/include/GLFW/glfw3native.h" "imgui/examples/libs/usynergy/uSynergy.c" "imgui/examples/libs/usynergy/uSynergy.h" "imgui/imconfig.h" "imgui/imgui.cpp" "imgui/imgui.h" "imgui/imgui_demo.cpp" "imgui/imgui_draw.cpp" "imgui/imgui_internal.h" "imgui/imgui_tables.cpp" "imgui/imgui_widgets.cpp" "imgui/imstb_rectpack.h" "imgui/imstb_textedit.h" "imgui/imstb_truetype.h" "imgui/misc/cpp/imgui_stdlib.cpp" "imgui/misc/cpp/imgui_stdlib.h" "imgui/misc/fonts/binary_to_compressed_c.cpp" "imgui/misc/freetype/imgui_freetype.cpp" "imgui/misc/freetype/imgui_freetype.h" "imgui/misc/single_file/imgui_single_file.h")
+
+if (CMAKE_VERSION VERSION_GREATER 3.12)
+  set_property(TARGET FinalEngine PROPERTY CXX_STANDARD 20)
+endif()
+
+# TODO: Add tests and install targets if needed.
