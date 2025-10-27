@@ -52,7 +52,7 @@ namespace core {
     }
 
     void Camera::updateCameraVectors() {
-        glm::vec3 dir;
+        glm::vec3 dir{};
         dir.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
         dir.y = sin(glm::radians(pitch));
         dir.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));

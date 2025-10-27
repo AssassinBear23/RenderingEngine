@@ -1,0 +1,7 @@
+Class GameObject
+ - Add Behaviours to object
+ - Parent/Children (move according to it)
+ - Renderer (Mesh/Material -> Materials holds shader)
+ 
+Interface IBehaviour
+ - Behaviour???

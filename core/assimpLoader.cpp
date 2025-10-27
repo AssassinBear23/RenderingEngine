@@ -1,5 +1,5 @@
 #include "assimpLoader.h"
-#include "mesh.h"
+#include "Rendering/mesh.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
