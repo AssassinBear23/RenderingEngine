@@ -9,7 +9,7 @@
 *.slo
 *.lo
 *.o
-*.obj
+# *.obj to keep the model folder in the git repo
 
 # Precompiled Headers
 *.gch
