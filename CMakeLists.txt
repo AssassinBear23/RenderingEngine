@@ -24,67 +24,67 @@ find_package(imgui CONFIG REQUIRED)
 
 # Locate the 'backends' folder installed by vcpkg (contains the .h/.cpp)
 find_path(IMGUI_BACKENDS_DIR
-    NAMES imgui_impl_glfw.h imgui_impl_opengl3.h
-    PATH_SUFFIXES imgui/backends
+	NAMES imgui_impl_glfw.h imgui_impl_opengl3.h
+	PATH_SUFFIXES imgui/backends
 )
 
 if (NOT IMGUI_BACKENDS_DIR)
-    message(FATAL_ERROR "Could not locate ImGui backends folder (imgui/backends).")
+	message(FATAL_ERROR "Could not locate ImGui backends folder (imgui/backends).")
 endif()
 
 # Your executable/library
 add_executable(FinalEngine
   "main.cpp"
-  "core/assimpLoader.cpp" "core/assimpLoader.h"
-  "core/camera.cpp"       "core/camera.h"
-  "core/model.cpp"        "core/model.h"
-  "Rendering/mesh.cpp"    "Rendering/mesh.h"
-  "Rendering/texture.cpp" "Rendering/texture.h"
+  "core/assimpLoader.cpp"			"core/assimpLoader.h"
+  "core/camera.cpp"					"core/camera.h"
+  "core/model.cpp"					"core/model.h"
+  "Rendering/mesh.cpp"				"Rendering/mesh.h"
+  "Rendering/texture.cpp"			"Rendering/texture.h"
   "Rendering/vertex.h"
-)
+  "ObjectSystems/GameObject.cpp"	"ObjectSystems/GameObject.h")
 
 add_custom_command(
-        TARGET FinalEngine PRE_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/shaders/
-        ${CMAKE_CURRENT_BINARY_DIR}/shaders/)
+		TARGET FinalEngine PRE_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_SOURCE_DIR}/shaders/
+		${CMAKE_CURRENT_BINARY_DIR}/shaders/)
 
 add_custom_command(
-        TARGET FinalEngine PRE_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/models/
-        ${CMAKE_CURRENT_BINARY_DIR}/models/)
+		TARGET FinalEngine PRE_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_SOURCE_DIR}/models/
+		${CMAKE_CURRENT_BINARY_DIR}/models/)
 
 add_custom_command(
-        TARGET FinalEngine PRE_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/textures/
-        ${CMAKE_CURRENT_BINARY_DIR}/textures/)
+		TARGET FinalEngine PRE_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_SOURCE_DIR}/textures/
+		${CMAKE_CURRENT_BINARY_DIR}/textures/)
 
 add_custom_target(copy_shaders ALL
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/shaders
-        ${CMAKE_CURRENT_BINARY_DIR}/shaders
-        DEPENDS ${SHADER_FILES}
-        COMMENT "Copying shaders..."
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_SOURCE_DIR}/shaders
+		${CMAKE_CURRENT_BINARY_DIR}/shaders
+		DEPENDS ${SHADER_FILES}
+		COMMENT "Copying shaders..."
 )
 
 add_dependencies(FinalEngine copy_shaders)
 
 target_include_directories(FinalEngine PRIVATE
-    ${IMGUI_BACKENDS_DIR}/..      # this is the 'imgui' include dir
-    ${CMAKE_SOURCE_DIR}    # for texture.h, mesh.h includes
+	${IMGUI_BACKENDS_DIR}/..        # this is the 'imgui' include dir
+	${CMAKE_SOURCE_DIR}				# for texture.h, mesh.h includes
 )
 
 find_package(Stb REQUIRED)
 target_include_directories(FinalEngine PRIVATE ${Stb_INCLUDE_DIR})
 
 target_link_libraries(FinalEngine PRIVATE
-    glad::glad
-    glfw
-    imgui::imgui
-    glm::glm
-    assimp::assimp
+	glad::glad
+	glfw
+	imgui::imgui
+	glm::glm
+	assimp::assimp
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

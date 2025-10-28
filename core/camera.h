@@ -2,8 +2,8 @@
 // Created by beer on 13/10/2025.
 //
 
-#ifndef RAWENGINE_CAMERA_H
-#define RAWENGINE_CAMERA_H
+#ifndef CAMERA_H
+#define CAMERA_H
 
 #pragma once
 #include <glm/glm.hpp>
@@ -20,6 +20,7 @@ namespace core {
         float yaw = -90.0f;
         float pitch = 0.0f;
 
+    public:
         Camera(const glm::vec3& pos, const glm::vec3& upDir);
 
         void moveForward(float speed);
