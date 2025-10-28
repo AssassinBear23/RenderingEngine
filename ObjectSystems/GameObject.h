@@ -103,7 +103,7 @@ namespace core
 		/// Implementations should consider:
 		/// - A stable iteration order of components (if required by game logic).
 		/// - Skipping or pruning expired child references before propagation.
-		/// - Avoiding re-entrancy and ensuring thread confinement to the main/game thread.
+		/// - Avoiding re-entrance and ensuring thread confinement to the main/game thread.
 		/// </remarks>
 		void Update();
 

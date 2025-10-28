@@ -136,160 +136,170 @@ void MouseButtonInputHandling(GLFWwindow* window, int button, int action, int mo
 }
 
 int main() {
-    glfwInit();
-    glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwInit();
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(g_width, g_height, "LearnOpenGL", nullptr, nullptr);
-    if (window == nullptr) {
-        printf("Failed to create GLFW window\n");
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
+	GLFWwindow* window = glfwCreateWindow(g_width, g_height, "LearnOpenGL", nullptr, nullptr);
+	if (window == nullptr) {
+		printf("Failed to create GLFW window\n");
+		glfwTerminate();
+		return -1;
+	}
+	glfwMakeContextCurrent(window);
 
-    glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
+	glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        printf("Failed to initialize GLAD\n");
-        return -1;
-    }
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		printf("Failed to initialize GLAD\n");
+		return -1;
+	}
 
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-    //Setup platforms
-    ImGui_ImplGlfw_InitForOpenGL(window, false);
-    ImGui_ImplOpenGL3_Init("#version 400");
+	//Setup platforms
+	ImGui_ImplGlfw_InitForOpenGL(window, false);
+	ImGui_ImplOpenGL3_Init("#version 400");
 
-    glEnable(GL_DEPTH_TEST);
-    glFrontFace(GL_CCW);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_DEPTH_TEST);
+	glFrontFace(GL_CCW);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    const GLuint modelVertexShader = GenerateShader("shaders/modelVertex.vs", GL_VERTEX_SHADER);
-    const GLuint fragmentShader = GenerateShader("shaders/fragment.fs", GL_FRAGMENT_SHADER);
-    const GLuint textureShader = GenerateShader("shaders/texture.fs", GL_FRAGMENT_SHADER);
+	const GLuint modelVertexShader = GenerateShader("shaders/modelVertex.vs", GL_VERTEX_SHADER);
+	const GLuint fragmentShader = GenerateShader("shaders/fragment.fs", GL_FRAGMENT_SHADER);
+	const GLuint textureShader = GenerateShader("shaders/texture.fs", GL_FRAGMENT_SHADER);
 
-    int success;
-    char infoLog[512];
-    const unsigned int modelShaderProgram = glCreateProgram();
-    glAttachShader(modelShaderProgram, modelVertexShader);
-    glAttachShader(modelShaderProgram, fragmentShader);
-    glLinkProgram(modelShaderProgram);
-    glGetProgramiv(modelShaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(modelShaderProgram, 512, nullptr, infoLog);
-        printf("Error! Making Shader Program: %s\n", infoLog);
-    }
-    const unsigned int textureShaderProgram = glCreateProgram();
-    glAttachShader(textureShaderProgram, modelVertexShader);
-    glAttachShader(textureShaderProgram, textureShader);
-    glLinkProgram(textureShaderProgram);
-    glGetProgramiv(textureShaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(textureShaderProgram, 512, nullptr, infoLog);
-        printf("Error! Making Shader Program: %s\n", infoLog);
-    }
+	int success;
+	char infoLog[512];
+	const unsigned int modelShaderProgram = glCreateProgram();
+	glAttachShader(modelShaderProgram, modelVertexShader);
+	glAttachShader(modelShaderProgram, fragmentShader);
+	glLinkProgram(modelShaderProgram);
+	glGetProgramiv(modelShaderProgram, GL_LINK_STATUS, &success);
+	if (!success) {
+		glGetProgramInfoLog(modelShaderProgram, 512, nullptr, infoLog);
+		printf("Error! Making Shader Program: %s\n", infoLog);
+	}
+	const unsigned int textureShaderProgram = glCreateProgram();
+	glAttachShader(textureShaderProgram, modelVertexShader);
+	glAttachShader(textureShaderProgram, textureShader);
+	glLinkProgram(textureShaderProgram);
+	glGetProgramiv(textureShaderProgram, GL_LINK_STATUS, &success);
+	if (!success) {
+		glGetProgramInfoLog(textureShaderProgram, 512, nullptr, infoLog);
+		printf("Error! Making Shader Program: %s\n", infoLog);
+	}
 
-    glDeleteShader(modelVertexShader);
-    glDeleteShader(fragmentShader);
-    glDeleteShader(textureShader);
+	glDeleteShader(modelVertexShader);
+	glDeleteShader(fragmentShader);
+	glDeleteShader(textureShader);
 
-    core::Mesh quad = core::Mesh::GenerateQuad();
-    core::Model quadModel({ quad });
-    quadModel.Translate(glm::vec3(0, 0, -2.5));
-    quadModel.Scale(glm::vec3(5, 5, 1));
+	core::Mesh quad = core::Mesh::GenerateQuad();
+	core::Model quadModel({ quad });
+	quadModel.Translate(glm::vec3(0, 0, -2.5));
+	quadModel.Scale(glm::vec3(5, 5, 1));
 
-    core::Model suzanne = core::AssimpLoader::loadModel("models/nonormalmonkey.obj");
-    core::Texture cmgtGatoTexture("textures/CMGaTo_crop.png");
+	core::Model suzanne = core::AssimpLoader::loadModel("models/nonormalmonkey.obj");
+	core::Texture cmgtGatoTexture("textures/CMGaTo_crop.png");
 
-    glm::vec4 clearColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
-    glClearColor(clearColor.r,
-        clearColor.g, clearColor.b, clearColor.a);
+	glm::vec4 clearColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
+	glClearColor(clearColor.r,
+		clearColor.g, clearColor.b, clearColor.a);
 
-    editorCamera = std::make_unique<core::Camera>(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	editorCamera = std::make_unique<core::Camera>(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-    glfwSetKeyCallback(window, KeyboardInputHandling);
-    glfwSetMouseButtonCallback(window, MouseButtonInputHandling);
-    glfwSetCursorPosCallback(window, MouseInputHandling);
-    glfwSetScrollCallback(window, ScrollCallback);
-    glfwSetCharCallback(window, CharCallback);
+	glfwSetKeyCallback(window, KeyboardInputHandling);
+	glfwSetMouseButtonCallback(window, MouseButtonInputHandling);
+	glfwSetCursorPosCallback(window, MouseInputHandling);
+	glfwSetScrollCallback(window, ScrollCallback);
+	glfwSetCharCallback(window, CharCallback);
 
-    GLint mvpMatrixUniform = glGetUniformLocation(modelShaderProgram, "mvpMatrix");
-    GLint textureModelUniform = glGetUniformLocation(textureShaderProgram, "mvpMatrix");
-    GLint textureUniform = glGetUniformLocation(textureShaderProgram, "text");
+	GLint mvpMatrixUniform = glGetUniformLocation(modelShaderProgram, "mvpMatrix");
+	GLint textureModelUniform = glGetUniformLocation(textureShaderProgram, "mvpMatrix");
+	GLint textureUniform = glGetUniformLocation(textureShaderProgram, "text");
 
-    GLenum drawMode = GL_TRIANGLES;
+	GLenum drawMode = GL_TRIANGLES;
 
-    double currentTime = glfwGetTime();
-    double finishFrameTime = 0.0;
-    float deltaTime = 0.0f;
-    float rotationStrength = 100.0f;
-    while (!glfwWindowShouldClose(window)) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glfwPollEvents();
+	double currentTime = glfwGetTime();
+	double finishFrameTime = 0.0;
+	float deltaTime = 0.0f;
+	float rotationStrength = 100.0f;
+
+	bool showDemoWindow = true;
+
+	while (!glfwWindowShouldClose(window)) {
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glfwPollEvents();
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		// Show the demo window inside a valid ImGui frame
+		if (showDemoWindow) {
+			ImGui::ShowDemoWindow(&showDemoWindow);
+		}
+		else
+		{
+			ImGui::Begin("Raw Engine v2", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+			ImGui::Text("Hello :)");
+			if (ImGui::Button("Toggle Wireframe"))
+			{
+				if (drawMode == GL_TRIANGLES)
+					drawMode = GL_LINES;
+				else
+					drawMode = GL_TRIANGLES;
+			}
+			ImGui::End();
+		}
 
 
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        ImGui::Begin("Raw Engine v2", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::Text("Hello :)");
-        if (ImGui::Button("Toggle Wireframe"))
-        {
-            if (drawMode == GL_TRIANGLES)
-                drawMode = GL_LINES;
-            else
-                drawMode = GL_TRIANGLES;
-        }
-        ImGui::End();
 
-        glm::mat4 view = editorCamera->GetViewMatrix();
-        glm::mat4 projection = editorCamera->GetProjectionMatrix(static_cast<float>(g_width), static_cast<float>(g_height));
+		glm::mat4 view = editorCamera->GetViewMatrix();
+		glm::mat4 projection = editorCamera->GetProjectionMatrix(static_cast<float>(g_width), static_cast<float>(g_height));
 
-        if (!io.WantCaptureKeyboard) {
-            ProcessInputs(window, deltaTime);
-        }
+		if (!io.WantCaptureKeyboard) {
+			ProcessInputs(window, deltaTime);
+		}
 
-        ProcessInputs(window, deltaTime);
+		suzanne.Rotate(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(rotationStrength) * static_cast<float>(deltaTime));
 
-        suzanne.Rotate(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(rotationStrength) * static_cast<float>(deltaTime));
+		glUseProgram(textureShaderProgram);
+		glUniformMatrix4fv(textureModelUniform, 1, GL_FALSE, glm::value_ptr(projection * view * quadModel.GetModelMatrix()));
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(textureUniform, 0);
+		glBindTexture(GL_TEXTURE_2D, cmgtGatoTexture.getId());
+		quadModel.Render(drawMode);
+		glBindVertexArray(0);
+		glActiveTexture(GL_TEXTURE0);
 
-        glUseProgram(textureShaderProgram);
-        glUniformMatrix4fv(textureModelUniform, 1, GL_FALSE, glm::value_ptr(projection * view * quadModel.GetModelMatrix()));
-        glActiveTexture(GL_TEXTURE0);
-        glUniform1i(textureUniform, 0);
-        glBindTexture(GL_TEXTURE_2D, cmgtGatoTexture.getId());
-        quadModel.Render(drawMode);
-        glBindVertexArray(0);
-        glActiveTexture(GL_TEXTURE0);
+		glUseProgram(modelShaderProgram);
+		glUniformMatrix4fv(mvpMatrixUniform, 1, GL_FALSE, glm::value_ptr(projection * view * suzanne.GetModelMatrix()));
+		suzanne.Render(drawMode);
+		glBindVertexArray(0);
 
-        glUseProgram(modelShaderProgram);
-        glUniformMatrix4fv(mvpMatrixUniform, 1, GL_FALSE, glm::value_ptr(projection * view * suzanne.GetModelMatrix()));
-        suzanne.Render(drawMode);
-        glBindVertexArray(0);
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		glfwSwapBuffers(window);
+		finishFrameTime = glfwGetTime();
+		deltaTime = static_cast<float>(finishFrameTime - currentTime);
+		currentTime = finishFrameTime;
+	}
 
-        glfwSwapBuffers(window);
-        finishFrameTime = glfwGetTime();
-        deltaTime = static_cast<float>(finishFrameTime - currentTime);
-        currentTime = finishFrameTime;
-    }
+	glDeleteProgram(modelShaderProgram);
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
 
-    glDeleteProgram(modelShaderProgram);
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-
-    ImGui::DestroyContext();
-    glfwTerminate();
-    return 0;
+	ImGui::DestroyContext();
+	glfwTerminate();
+	return 0;
 }

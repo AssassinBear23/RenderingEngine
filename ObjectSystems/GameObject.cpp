@@ -2,7 +2,7 @@
 
 namespace core
 {
-	GameObject::GameObject(std::shared_ptr<GameObject> parent = nullptr, std::vector<std::shared_ptr<IComponent>> components = {})
+	GameObject::GameObject(std::shared_ptr<GameObject> parent, std::vector<std::shared_ptr<IComponent>> components)
 	{
 		this->parent = parent;
 		this->components = components;
