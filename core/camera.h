@@ -23,19 +23,19 @@ namespace core {
     public:
         Camera(const glm::vec3& pos, const glm::vec3& upDir);
 
-        void moveForward(float speed);
-        void moveBackward(float speed);
-        void moveLeft(float speed);
-        void moveRight(float speed);
-        void moveUp(float speed);
-        void moveDown(float speed);
-        void pivotRotate(glm::vec2 delta);
+        void MoveForward(float speed);
+        void MoveBackward(float speed);
+        void MoveLeft(float speed);
+        void MoveRight(float speed);
+        void MoveUp(float speed);
+        void MoveDown(float speed);
+        void PivotRotate(glm::vec2 delta);
 
-        glm::mat4 getViewMatrix() const;
-        glm::mat4 getProjectionMatrix(float width, float height) const;
+        glm::mat4 GetViewMatrix() const;
+        glm::mat4 GetProjectionMatrix(float width, float height) const;
 
     private:
-        void updateCameraVectors();
+        void UpdateCameraVectors();
     };
 }
 

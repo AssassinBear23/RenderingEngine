@@ -41,7 +41,7 @@ add_executable(FinalEngine
   "Rendering/mesh.cpp"				"Rendering/mesh.h"
   "Rendering/texture.cpp"			"Rendering/texture.h"
   "Rendering/vertex.h"
-  "ObjectSystems/GameObject.cpp"	"ObjectSystems/GameObject.h")
+  "ObjectSystems/GameObject.cpp"	"ObjectSystems/GameObject.h" "ObjectSystems/IComponent.h" "ObjectSystems/IComponent.cpp" "ObjectSystems/Components/Renderer.h" "ObjectSystems/Components/Renderer.cpp")
 
 add_custom_command(
 		TARGET FinalEngine PRE_BUILD

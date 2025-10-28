@@ -2,10 +2,10 @@
 
 namespace core {
     Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices) : vertices(vertices), indices(indices) {
-        setupBuffers();
+        SetupBuffers();
     }
 
-    void Mesh::setupBuffers() {
+    void Mesh::SetupBuffers() {
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO);
@@ -25,7 +25,7 @@ namespace core {
         glBindVertexArray(0);
     }
 
-    Mesh Mesh::generateQuad() {
+    Mesh Mesh::GenerateQuad() {
         const glm::vec3 pos[] = {
                 glm::vec3(-1.0f, -1.0f, 0.0f),
                 glm::vec3(1.0f, -1.0f, 0.0f),
@@ -62,7 +62,7 @@ namespace core {
         return Mesh(vertexVector, indices);
     }
 
-    void Mesh::render(GLenum drawMode) {
+    void Mesh::Render(GLenum drawMode) {
         glBindVertexArray(VAO);
         glDrawElements(drawMode, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
     }

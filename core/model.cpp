@@ -2,25 +2,25 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace core {
-    void core::Model::render(GLenum drawMode) {
+    void core::Model::Render(GLenum drawMode) {
         for (int i = 0; i < meshes.size(); ++i) {
-            meshes[i].render(drawMode);
+            meshes[i].Render(drawMode);
         }
     }
 
-    void Model::translate(glm::vec3 translation) {
+    void Model::Translate(glm::vec3 translation) {
         modelMatrix = glm::translate(modelMatrix, translation);
     }
 
-    void Model::rotate(glm::vec3 axis, float radians) {
+    void Model::Rotate(glm::vec3 axis, float radians) {
         modelMatrix = glm::rotate(modelMatrix, radians, axis);
     }
 
-    void Model::scale(glm::vec3 scale) {
-        modelMatrix = glm::scale(modelMatrix, scale);
+    void Model::Scale(glm::vec3 Scale) {
+        modelMatrix = glm::scale(modelMatrix, Scale);
     }
 
-    glm::mat4 Model::getModelMatrix() const {
+    glm::mat4 Model::GetModelMatrix() const {
         return this->modelMatrix;
     }
 }
