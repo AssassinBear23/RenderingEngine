@@ -32,108 +32,108 @@ static double g_lastY = 0.0;
 
 
 void FramebufferSizeCallback(GLFWwindow* window,
-    int width, int height) {
-    g_width = width;
-    g_height = height;
-    glViewport(0, 0, width, height);
+	int width, int height) {
+	g_width = width;
+	g_height = height;
+	glViewport(0, 0, width, height);
 }
 
 std::string ReadFileToString(const std::string& filePath) {
-    std::ifstream fileStream(filePath, std::ios::in);
-    if (!fileStream.is_open()) {
-        printf("Could not open file: %s\n", filePath.c_str());
-        return "";
-    }
-    std::stringstream buffer;
-    buffer << fileStream.rdbuf();
-    return buffer.str();
+	std::ifstream fileStream(filePath, std::ios::in);
+	if (!fileStream.is_open()) {
+		printf("Could not open file: %s\n", filePath.c_str());
+		return "";
+	}
+	std::stringstream buffer;
+	buffer << fileStream.rdbuf();
+	return buffer.str();
 }
 
 GLuint GenerateShader(const std::string& shaderPath, GLuint shaderType) {
-    printf("Loading shader: %s\n", shaderPath.c_str());
-    const std::string shaderText = ReadFileToString(shaderPath);
-    const GLuint shader = glCreateShader(shaderType);
-    const char* s_str = shaderText.c_str();
-    glShaderSource(shader, 1, &s_str, nullptr);
-    glCompileShader(shader);
-    GLint success = 0;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        char infoLog[512];
-        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        printf("Error! Shader issue [%s]: %s\n", shaderPath.c_str(), infoLog);
-    }
-    return shader;
+	printf("Loading shader: %s\n", shaderPath.c_str());
+	const std::string shaderText = ReadFileToString(shaderPath);
+	const GLuint shader = glCreateShader(shaderType);
+	const char* s_str = shaderText.c_str();
+	glShaderSource(shader, 1, &s_str, nullptr);
+	glCompileShader(shader);
+	GLint success = 0;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+	if (!success) {
+		char infoLog[512];
+		glGetShaderInfoLog(shader, 512, nullptr, infoLog);
+		printf("Error! Shader issue [%s]: %s\n", shaderPath.c_str(), infoLog);
+	}
+	return shader;
 }
 
 void KeyboardInputHandling(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
-    if (action == GLFW_PRESS) {
-        g_keymap[key] = true;
-    }
-    else if (action == GLFW_RELEASE) {
-        g_keymap[key] = false;
-    }
+	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+	if (action == GLFW_PRESS) {
+		g_keymap[key] = true;
+	}
+	else if (action == GLFW_RELEASE) {
+		g_keymap[key] = false;
+	}
 }
 
 void ProcessInputs(GLFWwindow* window, const float deltaTime) {
-    float speed_multiplier = g_keymap[GLFW_KEY_LEFT_SHIFT] ? 5.0f : 1.0f;
+	float speed_multiplier = g_keymap[GLFW_KEY_LEFT_SHIFT] ? 5.0f : 1.0f;
 
-    if (g_keymap[GLFW_KEY_W]) editorCamera->MoveForward(speed_multiplier * deltaTime);
-    if (g_keymap[GLFW_KEY_S]) editorCamera->MoveBackward(speed_multiplier * deltaTime);
-    if (g_keymap[GLFW_KEY_A]) editorCamera->MoveLeft(speed_multiplier * deltaTime);
-    if (g_keymap[GLFW_KEY_D]) editorCamera->MoveRight(speed_multiplier * deltaTime);
-    if (g_keymap[GLFW_KEY_Q]) editorCamera->MoveDown(speed_multiplier * deltaTime);
-    if (g_keymap[GLFW_KEY_E]) editorCamera->MoveUp(speed_multiplier * deltaTime);
+	if (g_keymap[GLFW_KEY_W]) editorCamera->MoveForward(speed_multiplier * deltaTime);
+	if (g_keymap[GLFW_KEY_S]) editorCamera->MoveBackward(speed_multiplier * deltaTime);
+	if (g_keymap[GLFW_KEY_A]) editorCamera->MoveLeft(speed_multiplier * deltaTime);
+	if (g_keymap[GLFW_KEY_D]) editorCamera->MoveRight(speed_multiplier * deltaTime);
+	if (g_keymap[GLFW_KEY_Q]) editorCamera->MoveDown(speed_multiplier * deltaTime);
+	if (g_keymap[GLFW_KEY_E]) editorCamera->MoveUp(speed_multiplier * deltaTime);
 }
 
 void MouseInputHandling(GLFWwindow* window, double xpos, double ypos) {
-    ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
-    if (!g_rotating) return;
+	ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
+	if (!g_rotating) return;
 
-    if (g_firstMouse) {
-        g_lastX = xpos;
-        g_lastY = ypos;
-        g_firstMouse = false;
-        return;
-    }
+	if (g_firstMouse) {
+		g_lastX = xpos;
+		g_lastY = ypos;
+		g_firstMouse = false;
+		return;
+	}
 
-    const double xoffset = xpos - g_lastX;
-    const double yoffset = g_lastY - ypos; // reversed since y-coordinates go
+	const double xoffset = xpos - g_lastX;
+	const double yoffset = g_lastY - ypos; // reversed since y-coordinates go
 
-    g_lastX = xpos;
-    g_lastY = ypos;
+	g_lastX = xpos;
+	g_lastY = ypos;
 
-    editorCamera->PivotRotate(glm::vec2(static_cast<float>(xoffset),
-        static_cast<float>(yoffset)));
+	editorCamera->PivotRotate(glm::vec2(static_cast<float>(xoffset),
+		static_cast<float>(yoffset)));
 }
 
 void ScrollCallback(GLFWwindow* window, double xoff, double yoff) {
-    ImGui_ImplGlfw_ScrollCallback(window, xoff, yoff);
+	ImGui_ImplGlfw_ScrollCallback(window, xoff, yoff);
 }
 
 void CharCallback(GLFWwindow* window, unsigned int c) {
-    ImGui_ImplGlfw_CharCallback(window, c);
+	ImGui_ImplGlfw_CharCallback(window, c);
 }
 
 void MouseButtonInputHandling(GLFWwindow* window, int button, int action, int mods) {
-    ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
-        g_rotating = true;
-        g_firstMouse = true;
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    }
-    else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE) {
-        g_rotating = false;
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    }
+	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+		g_rotating = true;
+		g_firstMouse = true;
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	}
+	else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE) {
+		g_rotating = false;
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
 
-    if (action == GLFW_PRESS) {
-        g_keymap[button] = true;
-    }
-    else if (action == GLFW_RELEASE) {
-        g_keymap[button] = false;
-    }
+	if (action == GLFW_PRESS) {
+		g_keymap[button] = true;
+	}
+	else if (action == GLFW_RELEASE) {
+		g_keymap[button] = false;
+	}
 }
 
 int main() {
@@ -232,21 +232,31 @@ int main() {
 	ImGuiIO& io = ImGui::GetIO();
 
 	while (!glfwWindowShouldClose(window)) {
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glfwPollEvents();
 
 		gui.BeginFrame();
 		gui.Draw();
 
-		glm::mat4 view = editorCamera->GetViewMatrix();
-		glm::mat4 projection = editorCamera->GetProjectionMatrix(static_cast<float>(g_width), static_cast<float>(g_height));
+		glBindFramebuffer(GL_FRAMEBUFFER, gui.getFramebufferId());
+		glViewport(0, 0, gui.getViewportWidth(), gui.getViewportHeight());
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		if (!io.WantCaptureKeyboard) {
-			ProcessInputs(window, deltaTime);
+		// Render 3D scene
+		glm::mat4 view = editorCamera->GetViewMatrix();
+		glm::mat4 projection = editorCamera->GetProjectionMatrix(
+			static_cast<float>(gui.getViewportWidth()),
+			static_cast<float>(gui.getViewportHeight())
+		);
+
+		if (gui.viewportFocused())
+		{
+			if (!io.WantCaptureMouse && !io.WantCaptureKeyboard)
+			{
+				ProcessInputs(window, deltaTime);
+			}
 		}
 
 		float rotationSpeed = gui.rotation_speed_deg_per_s;
-
 		suzanne.Rotate(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(rotationSpeed) * static_cast<float>(deltaTime));
 
 		glUseProgram(textureShaderProgram);
@@ -255,13 +265,11 @@ int main() {
 		glUniform1i(textureUniform, 0);
 		glBindTexture(GL_TEXTURE_2D, cmgtGatoTexture.getId());
 		quadModel.Render(drawMode);
-		glBindVertexArray(0);
-		glActiveTexture(GL_TEXTURE0);
 
 		glUseProgram(modelShaderProgram);
 		glUniformMatrix4fv(mvpMatrixUniform, 1, GL_FALSE, glm::value_ptr(projection * view * suzanne.GetModelMatrix()));
 		suzanne.Render(drawMode);
-		glBindVertexArray(0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		gui.EndFrame();
 
@@ -273,7 +281,7 @@ int main() {
 
 	gui.Shutdown();
 
-	glDeleteProgram(modelShaderProgram);	
+	glDeleteProgram(modelShaderProgram);
 	glfwTerminate();
 	return 0;
 }
