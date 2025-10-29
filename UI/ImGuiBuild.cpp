@@ -1,4 +1,5 @@
-#include "imGuiBuild.h"
+#include "ImGuiBuild.h"
+#include <iostream>
 
 namespace UI
 {
@@ -66,12 +67,10 @@ namespace UI
 		ImGui::DockSpace(m_dockspace_id, ImVec2(0, 0), dock_flags);
 
 		
-		drawMainMenu();							// Main menu bar
-		drawHeirarchyWindow();					// Heirarchy panel
-		drawViewportWindow();					// TODO: Viewport panel 
-
-		// Optional: ImGui demo window toggle
-		if (showDemo) ImGui::ShowDemoWindow(&showDemo);
+		drawMainMenu();
+		if (guiData.showHeirarchy)	drawHeirarchyWindow();
+		if (guiData.showViewport)	drawViewportWindow();
+		if (guiData.showDemo)		ImGui::ShowDemoWindow(&guiData.showDemo);
 
 		ImGui::End();
 	}
@@ -99,17 +98,20 @@ namespace UI
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("View")) {
-				ImGui::MenuItem("ImGui Demo", nullptr, &showDemo);
+				//ImGui::MenuItem("ImGui Demo", nullptr, &guiData.showDemo);
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Settings")) {
 				ImGui::SliderFloat("Rotation speed (deg/s)", &rotation_speed_deg_per_s, 0.0f, 720.0f);
 				ImGui::EndMenu();
 			}
-			/*if (ImGui::BeginMenu("Windows"))
+			if (ImGui::BeginMenu("Windows"))
 			{
-				ImGui::MenuItem("Heirarchy",)
-			}*/
+				ImGui::Checkbox("Heirarchy", &guiData.showHeirarchy);
+				ImGui::Checkbox("Viewport", &guiData.showViewport);
+				ImGui::Checkbox("ImGui Demo", &guiData.showDemo);
+				ImGui::EndMenu();
+			}
 			ImGui::EndMainMenuBar();
 		}
 	}
@@ -117,7 +119,7 @@ namespace UI
 	void Gui::drawHeirarchyWindow()
 	{
 		// Placeholder hierarchy until your GameObject graph is ready
-		ImGui::Begin("Hierarchy");
+		ImGui::Begin("Hierarchy", &guiData.showHeirarchy);
 		if (ImGui::TreeNodeEx("Scene", ImGuiTreeNodeFlags_DefaultOpen)) {
 			// Examples – replace with your actual GameObjects
 			ImGui::BulletText("Camera");
@@ -139,7 +141,7 @@ namespace UI
 	void Gui::drawViewportWindow()
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-		ImGui::Begin("Viewport");
+		ImGui::Begin("Viewport", &guiData.showViewport);
 		ImGui::PopStyleVar();
 
 		// How big is the render target?
@@ -185,6 +187,16 @@ namespace UI
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthRb);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE)
+		{
+			std::cerr << "[GUI] Framebuffer incomplete! Status = 0x" << std::hex << status << std::dec << std::endl;
+		}
+		else
+		{
+			std::cout << "[GUI] Created/Resized FBO (" << w << "x" << h << ")" << std::endl;
+		}
 
 		// Store new size
 		m_vpWidth = w;

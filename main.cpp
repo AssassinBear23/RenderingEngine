@@ -227,8 +227,6 @@ int main() {
 	double finishFrameTime = 0.0;
 	float deltaTime = 0.0f;
 
-	bool showDemoWindow = true;
-
 	ImGuiIO& io = ImGui::GetIO();
 
 	while (!glfwWindowShouldClose(window)) {
