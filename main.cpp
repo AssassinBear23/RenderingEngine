@@ -10,6 +10,7 @@
 #include "core/assimpLoader.h"
 #include "Rendering/texture.h"
 #include "core/camera.h"
+#include "UI/ImGuiBuild.h"
 
 #define VSTUDIO
 
@@ -157,14 +158,8 @@ int main() {
 		return -1;
 	}
 
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
-	//Setup platforms
-	ImGui_ImplGlfw_InitForOpenGL(window, false);
-	ImGui_ImplOpenGL3_Init("#version 400");
+	UI::Gui gui;
+	gui.Init(window, "#version 400");
 
 	glEnable(GL_DEPTH_TEST);
 	glFrontFace(GL_CCW);
@@ -231,37 +226,17 @@ int main() {
 	double currentTime = glfwGetTime();
 	double finishFrameTime = 0.0;
 	float deltaTime = 0.0f;
-	float rotationStrength = 100.0f;
 
 	bool showDemoWindow = true;
+
+	ImGuiIO& io = ImGui::GetIO();
 
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glfwPollEvents();
 
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-
-		// Show the demo window inside a valid ImGui frame
-		if (showDemoWindow) {
-			ImGui::ShowDemoWindow(&showDemoWindow);
-		}
-		else
-		{
-			ImGui::Begin("Raw Engine v2", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-			ImGui::Text("Hello :)");
-			if (ImGui::Button("Toggle Wireframe"))
-			{
-				if (drawMode == GL_TRIANGLES)
-					drawMode = GL_LINES;
-				else
-					drawMode = GL_TRIANGLES;
-			}
-			ImGui::End();
-		}
-
-
+		gui.BeginFrame();
+		gui.Draw();
 
 		glm::mat4 view = editorCamera->GetViewMatrix();
 		glm::mat4 projection = editorCamera->GetProjectionMatrix(static_cast<float>(g_width), static_cast<float>(g_height));
@@ -270,7 +245,9 @@ int main() {
 			ProcessInputs(window, deltaTime);
 		}
 
-		suzanne.Rotate(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(rotationStrength) * static_cast<float>(deltaTime));
+		float rotationSpeed = gui.rotation_speed_deg_per_s;
+
+		suzanne.Rotate(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(rotationSpeed) * static_cast<float>(deltaTime));
 
 		glUseProgram(textureShaderProgram);
 		glUniformMatrix4fv(textureModelUniform, 1, GL_FALSE, glm::value_ptr(projection * view * quadModel.GetModelMatrix()));
@@ -286,8 +263,7 @@ int main() {
 		suzanne.Render(drawMode);
 		glBindVertexArray(0);
 
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		gui.EndFrame();
 
 		glfwSwapBuffers(window);
 		finishFrameTime = glfwGetTime();
@@ -295,11 +271,9 @@ int main() {
 		currentTime = finishFrameTime;
 	}
 
-	glDeleteProgram(modelShaderProgram);
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
+	gui.Shutdown();
 
-	ImGui::DestroyContext();
+	glDeleteProgram(modelShaderProgram);	
 	glfwTerminate();
 	return 0;
 }
