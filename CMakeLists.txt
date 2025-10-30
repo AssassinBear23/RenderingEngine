@@ -35,16 +35,16 @@ endif()
 # Your executable/library
 add_executable(FinalEngine
   "main.cpp"
-  "UI/ImGuiBuild.cpp"
-  "core/assimpLoader.cpp"					
-  "core/camera.cpp"							
-  "core/model.cpp"							
-  "Rendering/mesh.cpp"						
-  "Rendering/texture.cpp"					
-  "ObjectSystems/GameObject.cpp"			
-  "ObjectSystems/IComponent.cpp"
-  "ObjectSystems/Components/Renderer.cpp"
-)
+  "core/UI/ImGuiBuild.cpp"
+  "core/assimpLoader.cpp"
+  "core/camera.cpp"
+  "core/model.cpp"
+  "core/Rendering/mesh.cpp"
+  "core/Rendering/texture.cpp"
+  "core/ObjectSystems/GameObject.cpp"
+  "core/ObjectSystems/IComponent.cpp"
+  "core/ObjectSystems/Components/Renderer.cpp"
+ )
 
 add_custom_command(
 		TARGET FinalEngine PRE_BUILD

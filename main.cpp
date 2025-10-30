@@ -6,11 +6,11 @@
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
-#include "Rendering/mesh.h"
-#include "core/assimpLoader.h"
-#include "Rendering/texture.h"
-#include "core/camera.h"
-#include "UI/ImGuiBuild.h"
+#include "Core/Rendering/mesh.h"
+#include "Core/Rendering/texture.h"
+#include "Core/assimpLoader.h"
+#include "Core/camera.h"
+#include "Core/UI/ImGuiBuild.h"
 
 #define VSTUDIO
 

@@ -1,4 +1,4 @@
-#include "ObjectSystems/IComponent.h"
+#include "Core/ObjectSystems/IComponent.h"
 
 namespace core
 {
