@@ -168,9 +168,9 @@ int main() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	const GLuint modelVertexShader = GenerateShader("shaders/modelVertex.vs", GL_VERTEX_SHADER);
-	const GLuint fragmentShader = GenerateShader("shaders/fragment.fs", GL_FRAGMENT_SHADER);
-	const GLuint textureShader = GenerateShader("shaders/texture.fs", GL_FRAGMENT_SHADER);
+	const GLuint modelVertexShader = GenerateShader("assets/shaders/modelVertex.vs", GL_VERTEX_SHADER);
+	const GLuint fragmentShader = GenerateShader("assets/shaders/fragment.fs", GL_FRAGMENT_SHADER);
+	const GLuint textureShader = GenerateShader("assets/shaders/texture.fs", GL_FRAGMENT_SHADER);
 
 	int success;
 	char infoLog[512];
@@ -202,8 +202,8 @@ int main() {
 	quadModel.Translate(glm::vec3(0, 0, -2.5));
 	quadModel.Scale(glm::vec3(5, 5, 1));
 
-	core::Model suzanne = core::AssimpLoader::loadModel("models/nonormalmonkey.obj");
-	core::Texture cmgtGatoTexture("textures/CMGaTo_crop.png");
+	core::Model suzanne = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
+	core::Texture cmgtGatoTexture("assets/textures/CMGaTo_crop.png");
 
 	glm::vec4 clearColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
 	glClearColor(clearColor.r,

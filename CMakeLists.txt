@@ -14,7 +14,6 @@ endif()
 project ("FinalEngine")
 
 # Add source to this project's executable.
-# add_executable (FinalEngine "main.cpp"  "core/assimpLoader.cpp" "core/assimpLoader.h" "core/camera.cpp" "core/camera.h" "core/mesh.cpp" "core/mesh.h" "core/model.cpp" "core/model.h" "core/texture.cpp" "core/texture.h" "core/vertex.h")
 
 find_package(glad CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
@@ -49,25 +48,25 @@ add_executable(FinalEngine
 add_custom_command(
 		TARGET FinalEngine PRE_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy_directory
-		${CMAKE_SOURCE_DIR}/shaders/
-		${CMAKE_CURRENT_BINARY_DIR}/shaders/)
+		${CMAKE_SOURCE_DIR}/assets/shaders/
+		${CMAKE_CURRENT_BINARY_DIR}/assets/shaders/)
 
 add_custom_command(
 		TARGET FinalEngine PRE_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy_directory
-		${CMAKE_SOURCE_DIR}/models/
-		${CMAKE_CURRENT_BINARY_DIR}/models/)
+		${CMAKE_SOURCE_DIR}/assets/models/
+		${CMAKE_CURRENT_BINARY_DIR}/assets/models/)
 
 add_custom_command(
 		TARGET FinalEngine PRE_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy_directory
-		${CMAKE_SOURCE_DIR}/textures/
-		${CMAKE_CURRENT_BINARY_DIR}/textures/)
+		${CMAKE_SOURCE_DIR}/assets/textures/
+		${CMAKE_CURRENT_BINARY_DIR}/assets/textures/)
 
 add_custom_target(copy_shaders ALL
 		COMMAND ${CMAKE_COMMAND} -E copy_directory
-		${CMAKE_SOURCE_DIR}/shaders
-		${CMAKE_CURRENT_BINARY_DIR}/shaders
+		${CMAKE_SOURCE_DIR}/assets/shaders
+		${CMAKE_CURRENT_BINARY_DIR}/assets/shaders
 		DEPENDS ${SHADER_FILES}
 		COMMENT "Copying shaders..."
 )
@@ -76,7 +75,7 @@ add_dependencies(FinalEngine copy_shaders)
 
 target_include_directories(FinalEngine PRIVATE
 	${IMGUI_BACKENDS_DIR}/..        # this is the 'imgui' include dir
-	${CMAKE_SOURCE_DIR}				# for texture.h, mesh.h includes
+	${CMAKE_SOURCE_DIR}				
 )
 
 find_package(Stb REQUIRED)
