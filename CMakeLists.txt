@@ -34,15 +34,18 @@ endif()
 # Your executable/library
 add_executable(FinalEngine
   "main.cpp"
-  "core/UI/ImGuiBuild.cpp"
   "core/assimpLoader.cpp"
   "core/camera.cpp"
   "core/model.cpp"
-  "core/Rendering/mesh.cpp"
-  "core/Rendering/texture.cpp"
-  "core/ObjectSystems/GameObject.cpp"
-  "core/ObjectSystems/IComponent.cpp"
-  "core/ObjectSystems/Components/Renderer.cpp"
+  "core/rendering/mesh.cpp"
+  "core/rendering/texture.cpp"
+  "core/objectSystems/components/renderer.cpp"
+  "core/objectSystems/object.cpp"
+  "core/objectSystems/component.cpp"
+  "core/objectSystems/gameObject.cpp"
+  "editor/editor.cpp"
+  "editor/panels/viewportPanel.cpp"
+  "editor/panels/heirarchyPanel.cpp"
  )
 
 add_custom_command(

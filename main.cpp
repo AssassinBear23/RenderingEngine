@@ -6,11 +6,12 @@
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
-#include "Core/Rendering/mesh.h"
-#include "Core/Rendering/texture.h"
-#include "Core/assimpLoader.h"
-#include "Core/camera.h"
-#include "Core/UI/ImGuiBuild.h"
+#include "core/rendering/mesh.h"
+#include "core/rendering/texture.h"
+#include "core/assimpLoader.h"
+#include "core/camera.h"
+
+#include "editor/Editor.h"
 
 #define VSTUDIO
 
@@ -19,6 +20,8 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #endif
+#include <editor/panels/viewportPanel.h>
+#include <editor/panels/hierarchyPanel.h>
 
 int g_width = 800;
 int g_height = 600;
@@ -158,8 +161,12 @@ int main() {
 		return -1;
 	}
 
-	UI::Gui gui;
-	gui.Init(window, "#version 400");
+	Editor editor;
+	editor.init(window, "#version 400");
+
+	auto& viewport = editor.addPanel<ViewportPanel>();
+	editor.addPanel<HierarchyPanel>();
+
 
 	glEnable(GL_DEPTH_TEST);
 	glFrontFace(GL_CCW);
@@ -227,57 +234,67 @@ int main() {
 	double finishFrameTime = 0.0;
 	float deltaTime = 0.0f;
 
+	editor.ctx();
+
 	ImGuiIO& io = ImGui::GetIO();
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
-		gui.BeginFrame();
-		gui.Draw();
+		editor.beginFrame();
+		editor.draw();
 
-		glBindFramebuffer(GL_FRAMEBUFFER, gui.getFramebufferId());
-		glViewport(0, 0, gui.getViewportWidth(), gui.getViewportHeight());
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		GLuint fb = editor.framebuffer();
+		int vw = editor.getViewportWidth();
+		int vh = editor.getViewportHeight();
+		if (vw <= 0 || vh <= 0 || editor.framebuffer() == 0) {
+			// Skip 3D rendering this frame (still draw ImGui)
+		}
+		else {
+			glBindFramebuffer(GL_FRAMEBUFFER, editor.framebuffer());
+			glViewport(0, 0, editor.getViewportWidth(), editor.getViewportHeight());
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// Render 3D scene
-		glm::mat4 view = editorCamera->GetViewMatrix();
-		glm::mat4 projection = editorCamera->GetProjectionMatrix(
-			static_cast<float>(gui.getViewportWidth()),
-			static_cast<float>(gui.getViewportHeight())
-		);
+			// Render 3D scene
+			glm::mat4 view = editorCamera->GetViewMatrix();
+			glm::mat4 projection = editorCamera->GetProjectionMatrix(
+				static_cast<float>(editor.getViewportWidth()),
+				static_cast<float>(editor.getViewportHeight())
+			);
 
-		if (gui.viewportFocused())
-		{
-			if (!io.WantCaptureMouse && !io.WantCaptureKeyboard)
+			if (editor.viewportFocused())
 			{
-				ProcessInputs(window, deltaTime);
+				if (!io.WantCaptureMouse && !io.WantCaptureKeyboard)
+				{
+					ProcessInputs(window, deltaTime);
+				}
 			}
+
+			float rotationSpeed = editor.rotation_speed_deg_per_s;
+			suzanne.Rotate(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(rotationSpeed) * static_cast<float>(deltaTime));
+
+			glUseProgram(textureShaderProgram);
+			glUniformMatrix4fv(textureModelUniform, 1, GL_FALSE, glm::value_ptr(projection * view * quadModel.GetModelMatrix()));
+			glActiveTexture(GL_TEXTURE0);
+			glUniform1i(textureUniform, 0);
+			glBindTexture(GL_TEXTURE_2D, cmgtGatoTexture.getId());
+			quadModel.Render(drawMode);
+
+			glUseProgram(modelShaderProgram);
+			glUniformMatrix4fv(mvpMatrixUniform, 1, GL_FALSE, glm::value_ptr(projection * view * suzanne.GetModelMatrix()));
+			suzanne.Render(drawMode);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
-		float rotationSpeed = gui.rotation_speed_deg_per_s;
-		suzanne.Rotate(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(rotationSpeed) * static_cast<float>(deltaTime));
-
-		glUseProgram(textureShaderProgram);
-		glUniformMatrix4fv(textureModelUniform, 1, GL_FALSE, glm::value_ptr(projection * view * quadModel.GetModelMatrix()));
-		glActiveTexture(GL_TEXTURE0);
-		glUniform1i(textureUniform, 0);
-		glBindTexture(GL_TEXTURE_2D, cmgtGatoTexture.getId());
-		quadModel.Render(drawMode);
-
-		glUseProgram(modelShaderProgram);
-		glUniformMatrix4fv(mvpMatrixUniform, 1, GL_FALSE, glm::value_ptr(projection * view * suzanne.GetModelMatrix()));
-		suzanne.Render(drawMode);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		gui.EndFrame();
-
+		editor.endFrame();
 		glfwSwapBuffers(window);
+
 		finishFrameTime = glfwGetTime();
 		deltaTime = static_cast<float>(finishFrameTime - currentTime);
 		currentTime = finishFrameTime;
 	}
 
-	gui.Shutdown();
+	editor.shutdown();
 
 	glDeleteProgram(modelShaderProgram);
 	glfwTerminate();

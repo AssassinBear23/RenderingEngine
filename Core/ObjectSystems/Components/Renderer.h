@@ -1,8 +1,8 @@
-#include "Core/ObjectSystems/IComponent.h"
+#include "Core/ObjectSystems/Component.h"
 
 namespace core
 {
-	class Renderer : public IComponent
+	class Renderer : public Component
 	{
 
 	public:
