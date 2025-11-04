@@ -2,6 +2,13 @@
 
 ViewportPanel::~ViewportPanel() { destroyFbo(); }
 
+ViewportPanel::ViewportPanel(Editor& editor)
+	: Panel("Viewport", true)
+{
+	// let the editor know “I’m the viewport”
+	editor.m_viewport = this;
+}
+
 void ViewportPanel::ensureFboSized(int w, int h) {
 	// Validate size
 	if (w <= 0 || h <= 0) return;
@@ -30,11 +37,11 @@ void ViewportPanel::ensureFboSized(int w, int h) {
 	{
 		std::cerr << "[GUI] Framebuffer incomplete! Status = 0x" << std::hex << status << std::dec << std::endl;
 		destroyFbo();
-	
+
 	}
 	else
 		std::cout << "[GUI] Created/Resized FBO (" << w << "x" << h << ")" << std::endl;
-	
+
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -44,9 +51,9 @@ void ViewportPanel::ensureFboSized(int w, int h) {
 }
 
 void ViewportPanel::destroyFbo() {
-	if (m_depthRb) { glDeleteRenderbuffers(1, &m_depthRb); m_depthRb = 0; }
-	if (m_colorTex) { glDeleteTextures(1, &m_colorTex);     m_colorTex = 0; }
-	if (m_fbo) { glDeleteFramebuffers(1, &m_fbo);      m_fbo = 0; }
+	if (m_colorTex)	{ glDeleteTextures(1, &m_colorTex);		m_colorTex = 0; }
+	if (m_depthRb)	{ glDeleteRenderbuffers(1, &m_depthRb);	m_depthRb = 0; }
+	if (m_fbo)		{ glDeleteFramebuffers(1, &m_fbo);		m_fbo = 0; }
 	m_vpWidth = m_vpHeight = 0;
 }
 
@@ -57,12 +64,7 @@ void ViewportPanel::draw(EditorContext& /*ctx*/) {
 	ImGui::Begin("Viewport", visiblePtr());
 	ImGui::PopStyleVar();
 
-	// Resize FBO to available content size
 	ImVec2 avail = ImGui::GetContentRegionAvail();
-
-
-	ImGui::Text("w=%d h=%d fbo=%u tex=%u", (int)avail.x, (int)avail.y, m_fbo, m_colorTex);
-
 	int w = (int)avail.x;
 	int h = (int)avail.y;
 	ensureFboSized(w, h);

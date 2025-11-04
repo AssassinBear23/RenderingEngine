@@ -44,6 +44,8 @@ public:
     /// </summary>
     float rotation_speed_deg_per_s = 10.0f;
 
+	friend class ViewportPanel; // to set m_viewport
+
 private:
     void drawMainMenu();
     void drawDockspace();

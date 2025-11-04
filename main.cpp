@@ -164,7 +164,7 @@ int main() {
 	Editor editor;
 	editor.init(window, "#version 400");
 
-	auto& viewport = editor.addPanel<ViewportPanel>();
+	auto& viewport = editor.addPanel<ViewportPanel>(editor);
 	editor.addPanel<HierarchyPanel>();
 
 

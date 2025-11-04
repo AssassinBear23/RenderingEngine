@@ -1,11 +1,12 @@
 #pragma once
 #include <glad/glad.h>
 #include <iostream>
-#include "../Panel.h"
+#include "../panel.h"
+#include "../editor.h"
 
 class ViewportPanel : public Panel {
 public:
-    ViewportPanel() : Panel("Viewport", true) {}
+    explicit ViewportPanel(Editor& editor);
     ~ViewportPanel();
 
     void draw(EditorContext& ctx) override;
