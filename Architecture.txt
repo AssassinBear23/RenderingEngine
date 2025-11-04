@@ -5,3 +5,15 @@ Class GameObject
  
 Interface IBehaviour
  - Behaviour???
+
+
+Material
+- Needs uniforms from scene
+ - Where are the lights and what kind
+ - Camera position
+Scene 
+ - Holds lights
+ - Holds camera
+ - Holds game objects
+
+Material gets the scene, sets uniforms from that.
