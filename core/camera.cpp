@@ -46,7 +46,7 @@ namespace core {
         return view;
     }
 
-    glm::mat4 Camera::GetProjectionMatrix(const float width, const float height) const { // NOLINT(*-convert-member-functions-to-static)
+    glm::mat4 Camera::GetProjectionMatrix(const float width, const float height) const {
         glm::mat4 const projection = glm::perspective(glm::radians(45.0f), width / height, 0.1f, 100.0f);
         return projection;
     }
