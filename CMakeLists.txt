@@ -37,16 +37,22 @@ add_executable(FinalEngine
   "core/assimpLoader.cpp"
   "core/camera.cpp"
   "core/model.cpp"
+  # "core/sceneManager.cpp"
+  "core/scene.cpp"
   "core/rendering/mesh.cpp"
   "core/rendering/texture.cpp"
   "core/objectSystems/components/renderer.cpp"
   "core/objectSystems/object.cpp"
   "core/objectSystems/component.cpp"
   "core/objectSystems/gameObject.cpp"
+  "core/objectSystems/components/Transform.cpp"
+  "Core/material.cpp"
   "editor/editor.cpp"
   "editor/panels/viewportPanel.cpp"
   "editor/panels/heirarchyPanel.cpp"
- )
+  "editor/panels/inspectorPanel.cpp"
+  "editor/panels/transformPanel.cpp"
+  )
 
 add_custom_command(
 		TARGET FinalEngine PRE_BUILD

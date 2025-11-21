@@ -1,80 +1,83 @@
 #include "ViewportPanel.h"
 
-ViewportPanel::~ViewportPanel() { destroyFbo(); }
-
-ViewportPanel::ViewportPanel(Editor& editor)
-	: Panel("Viewport", true)
+namespace editor
 {
-	// let the editor know “I’m the viewport”
-	editor.m_viewport = this;
-}
+    ViewportPanel::~ViewportPanel() { destroyFbo(); }
 
-void ViewportPanel::ensureFboSized(int w, int h) {
-	// Validate size
-	if (w <= 0 || h <= 0) return;
-	if (m_vpWidth == w && m_vpHeight == h && m_fbo) return;
+    ViewportPanel::ViewportPanel(Editor& editor)
+        : Panel("Viewport", true)
+    {
+        // let the editor know “I’m the viewport”
+        editor.m_viewport = this;
+    }
 
-	// Destroy existing FBO
-	destroyFbo();
+    void ViewportPanel::ensureFboSized(int w, int h) {
+        // Validate size
+        if (w <= 0 || h <= 0) return;
+        if (m_vpWidth == w && m_vpHeight == h && m_fbo) return;
 
-	glGenFramebuffers(1, &m_fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+        // Destroy existing FBO
+        destroyFbo();
 
-	glGenTextures(1, &m_colorTex);
-	glBindTexture(GL_TEXTURE_2D, m_colorTex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTex, 0);
+        glGenFramebuffers(1, &m_fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 
-	glGenRenderbuffers(1, &m_depthRb);
-	glBindRenderbuffer(GL_RENDERBUFFER, m_depthRb);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthRb);
+        glGenTextures(1, &m_colorTex);
+        glBindTexture(GL_TEXTURE_2D, m_colorTex);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTex, 0);
 
-	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	if (status != GL_FRAMEBUFFER_COMPLETE)
-	{
-		std::cerr << "[GUI] Framebuffer incomplete! Status = 0x" << std::hex << status << std::dec << std::endl;
-		destroyFbo();
+        glGenRenderbuffers(1, &m_depthRb);
+        glBindRenderbuffer(GL_RENDERBUFFER, m_depthRb);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthRb);
 
-	}
-	else
-		std::cout << "[GUI] Created/Resized FBO (" << w << "x" << h << ")" << std::endl;
+        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if (status != GL_FRAMEBUFFER_COMPLETE)
+        {
+            std::cerr << "[GUI] Framebuffer incomplete! Status = 0x" << std::hex << status << std::dec << std::endl;
+            destroyFbo();
+
+        }
+        else
+            std::cout << "[GUI] Created/Resized FBO (" << w << "x" << h << ")" << std::endl;
 
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// Store new size
-	m_vpWidth = w;
-	m_vpHeight = h;
-}
+        // Store new size
+        m_vpWidth = w;
+        m_vpHeight = h;
+    }
 
-void ViewportPanel::destroyFbo() {
-	if (m_colorTex)	{ glDeleteTextures(1, &m_colorTex);		m_colorTex = 0; }
-	if (m_depthRb)	{ glDeleteRenderbuffers(1, &m_depthRb);	m_depthRb = 0; }
-	if (m_fbo)		{ glDeleteFramebuffers(1, &m_fbo);		m_fbo = 0; }
-	m_vpWidth = m_vpHeight = 0;
-}
+    void ViewportPanel::destroyFbo() {
+        if (m_colorTex) { glDeleteTextures(1, &m_colorTex);		m_colorTex = 0; }
+        if (m_depthRb) { glDeleteRenderbuffers(1, &m_depthRb);	m_depthRb = 0; }
+        if (m_fbo) { glDeleteFramebuffers(1, &m_fbo);		m_fbo = 0; }
+        m_vpWidth = m_vpHeight = 0;
+    }
 
-void ViewportPanel::draw(EditorContext& /*ctx*/) {
-	if (!*visiblePtr()) return;
+    void ViewportPanel::draw(EditorContext& /*ctx*/) {
+        if (!isVisible) return;
 
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-	ImGui::Begin("Viewport", visiblePtr());
-	ImGui::PopStyleVar();
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        ImGui::Begin("Viewport", &isVisible);
+        ImGui::PopStyleVar();
 
-	ImVec2 avail = ImGui::GetContentRegionAvail();
-	int w = (int)avail.x;
-	int h = (int)avail.y;
-	ensureFboSized(w, h);
+        ImVec2 avail = ImGui::GetContentRegionAvail();
+        int w = (int)avail.x;
+        int h = (int)avail.y;
+        ensureFboSized(w, h);
 
-	m_focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+        m_focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
 
-	// Draw the color attachment (flip v)
-	if (m_colorTex) {
-		ImGui::Image((ImTextureID)(intptr_t)m_colorTex, avail, ImVec2(0, 1), ImVec2(1, 0));
-	}
+        // Draw the color attachment (flip v)
+        if (m_colorTex) {
+            ImGui::Image((ImTextureID)(intptr_t)m_colorTex, avail, ImVec2(0, 1), ImVec2(1, 0));
+        }
 
-	ImGui::End();
+        ImGui::End();
+    }
 }

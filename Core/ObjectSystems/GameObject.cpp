@@ -1,5 +1,7 @@
 #include "GameObject.h"
 #include "Component.h"
+#include "editor/editor.h"
+#include "core/scene.h"
 
 namespace core {
 
@@ -7,10 +9,13 @@ namespace core {
         SetName(std::move(name));
     }
 
-    void GameObject::SetParent(std::shared_ptr<GameObject> newParent) {
+    void GameObject::SetParent(std::shared_ptr<GameObject> newParent)
+    {
+        // Always use shared_from_this to get a shared_ptr to self, not shared_ptr<GameObject>(this).
         auto self = std::static_pointer_cast<GameObject>(shared_from_this());
 
-        if (m_parent.lock() == newParent)
+        // Check if the passed parent is the same as current, if so, do nothing.
+        if (m_parent.lock() == newParent) // .lock() converts a weak_ptr to shared_ptr. This allows you to compare.
             return;
 
         // Remove from old parent
@@ -22,16 +27,31 @@ namespace core {
         // Set new parent
         m_parent = newParent;
 
-        // Add to new parent's children
+        // Add to new parent's children 
         if (newParent) {
-            auto& kids = newParent->m_children;
-            if (std::find(kids.begin(), kids.end(), self) == kids.end()) {
-                kids.push_back(self);
-            }
+            newParent->AddChild(self);
+        } else {
+            editor::Editor::editorCtx.currentScene->AddRootGameObject(self);
         }
     }
 
     std::weak_ptr<GameObject> GameObject::GetParent() const { return m_parent; }
+
+    void GameObject::AddChild(const std::shared_ptr<GameObject>& child)
+    {
+        if (!child) return;
+
+        m_children.push_back(child);
+    }
+
+    void GameObject::RemoveChild(const std::shared_ptr<GameObject>& child)
+    {
+        if (!child) return;
+
+        // Move elements that are not equal to the _Val child to the front, and returns an iterator to the new end, then use .erase to remove the "removed" elements.
+        m_children.erase(std::remove(m_children.begin(), m_children.end(), child), m_children.end());
+    }
+
     const std::vector<std::shared_ptr<GameObject>>& GameObject::GetChildren() const { return m_children; }
 
     std::shared_ptr<GameObject> GameObject::CreateChild(std::string childName) {

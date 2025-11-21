@@ -22,19 +22,23 @@ namespace core {
         explicit Scene(std::string name = {});
 
         /// <summary>
-        /// Create a root GameObject and return it.
-        /// </summary>
-        std::shared_ptr<GameObject> CreateRoot(std::string name = {});
-
-        /// <summary>
         /// Add an existing GameObject as a root.
         /// </summary>
-        void AddRoot(const std::shared_ptr<GameObject>& go);
+        void AddRootGameObject(const std::shared_ptr<GameObject>& go);
+
+        /// <summary>
+        /// Create a new GameObject and set it's parent. If parent is nullptr, it's a root.
+        /// </summary>
+        /// <param name="name">The name of the Object to create</param>
+        /// <param name="parent">The parent GameObject</param>
+        std::shared_ptr<GameObject> CreateObject(const std::string& name = "NewObject", const std::shared_ptr<core::GameObject> parent = nullptr);
 
         /// <summary>
         /// Return all root GameObjects.
         /// </summary>
         const std::vector<std::shared_ptr<GameObject>>& Roots() const;
+
+        void Draw();
 
     private:
         std::vector<std::shared_ptr<GameObject>> m_roots;

@@ -18,5 +18,7 @@ namespace core {
         void Rotate(glm::vec3 axis, float radians);
         void Scale(glm::vec3 Scale);
         glm::mat4 GetModelMatrix() const;
+        
+        const std::vector<core::Mesh>& GetMeshes() const { return meshes; }
     };
 }

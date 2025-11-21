@@ -8,57 +8,58 @@
 #include <imgui_impl_opengl3.h>
 #include "Panel.h"
 
-class Panel; // fwd
+namespace editor
+{
+    class Panel; // fwd
 
-class Editor {
-public:
-    Editor() = default;
-    ~Editor();
+    class Editor {
+    public:
+        Editor() = default;
+        ~Editor();
 
-    void init(GLFWwindow* window, const char* glsl_version = "#version 400");
-    void shutdown();
+        void init(GLFWwindow* window, const char* glsl_version = "#version 400");
+        void shutdown();
 
-    void beginFrame();   // ImGui new frame
-    void draw();         // Dockspace + main menu + panels
-    void endFrame();     // Render draw data
+        void beginFrame();   // ImGui new frame
+        void draw();         // Dockspace + main menu + panels
+        void endFrame();     // Render draw data
 
-    // Panel management
-    template<class T, class... Args>
-    T& addPanel(Args&&... args) {
-        m_panels.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
-        return static_cast<T&>(*m_panels.back());
-    }
-    const std::vector<std::unique_ptr<Panel>>& panels() const { return m_panels; }
+        // Panel management
+        template<class T, class... Args>
+        T& addPanel(Args&&... args) {
+            m_panels.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
+            return static_cast<T&>(*m_panels.back());
+        }
+        const std::vector<std::unique_ptr<Panel>>& panels() const { return m_panels; }
 
-    // Context
-    EditorContext& ctx() { return m_ctx; }
 
-    // Viewport render target (owned by ViewportPanel; Editor proxies these)
-    GLuint framebuffer() const;  // 0 if not ready
-    int    getViewportWidth() const;
-    int    getViewportHeight() const;
-    bool   viewportFocused() const;
+        // Viewport render target (owned by ViewportPanel; Editor proxies these)
+        GLuint framebuffer() const;  // 0 if not ready
+        int    getViewportWidth() const;
+        int    getViewportHeight() const;
+        bool   viewportFocused() const;
 
-    /// <summary>
-    /// Rotation speed (degrees/second) used by sample content displayed in the viewport.
-    /// </summary>
-    float rotation_speed_deg_per_s = 10.0f;
+        /// <summary>
+        /// Rotation speed (degrees/second) used by sample content displayed in the viewport.
+        /// </summary>
+        float rotationSpeedDegSec = 10.0f;
 
-	friend class ViewportPanel; // to set m_viewport
+        friend class ViewportPanel; // to set m_viewport
 
-private:
-    void drawMainMenu();
-    void drawDockspace();
+        static EditorContext editorCtx;
+    private:
+        void drawMainMenu();
+        void drawDockspace();
 
-    GLFWwindow* m_window = nullptr;
-    bool m_initialized = false;
-    ImGuiID m_dockspaceId = 0;
+        GLFWwindow* m_window = nullptr;
+        bool m_initialized = false;
+        ImGuiID m_dockspaceId = 0;
 
-    EditorContext m_ctx;
-    std::vector<std::unique_ptr<Panel>> m_panels;
+        std::vector<std::unique_ptr<Panel>> m_panels;
 
-    // Pointers to special panels we want to expose
-    class ViewportPanel* m_viewport = nullptr;
+        // Pointers to special panels we want to expose
+        class ViewportPanel* m_viewport = nullptr;
 
-    friend class ViewportPanel; // to set m_viewport
-};
+        friend class ViewportPanel; // to set m_viewport
+    };
+}

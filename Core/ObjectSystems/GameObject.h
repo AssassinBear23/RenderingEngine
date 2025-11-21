@@ -25,8 +25,10 @@ namespace core {
         explicit GameObject(std::string name = {});
 
         /// <summary>
-        /// Set this object's parent (handles both sides of the relation).
+        /// Set this object's parent (handles both sides of the relation)
+        /// <para>
         /// Pass nullptr to make it a root.
+        /// </para>
         /// </summary>
         void SetParent(std::shared_ptr<GameObject> newParent);
 
@@ -34,7 +36,16 @@ namespace core {
         /// Returns the parent (weak). Null/expired means root.
         /// </summary>
         std::weak_ptr<GameObject> GetParent() const;
-
+        /// <summary>
+        /// Adds a child to this objects child list.
+        /// </summary>
+        /// <param name="child"></param>
+        void AddChild(const std::shared_ptr<GameObject>& child);
+        /// <summary>
+        /// Removes a child from this objects child list.
+        /// </summary>
+        /// <param name="child"></param>
+        void RemoveChild(const std::shared_ptr<GameObject>& child);
         /// <summary>
         /// Returns the children (strong).
         /// </summary>
@@ -61,7 +72,6 @@ namespace core {
         /// Returns all components attached to this GameObject.
         /// </summary>
         const std::vector<std::shared_ptr<Component>>& GetComponents() const;
-
     private:
         std::weak_ptr<GameObject> m_parent;
         std::vector<std::shared_ptr<GameObject>> m_children;

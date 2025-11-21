@@ -8,8 +8,13 @@
 #include <unordered_map>
 #include "core/rendering/mesh.h"
 #include "core/rendering/texture.h"
+#include "core/material.h"
 #include "core/assimpLoader.h"
 #include "core/camera.h"
+#include "core/scene.h"
+#include "core/objectSystems/gameObject.h"
+#include "core/objectSystems/components/transform.h"
+#include "core/objectSystems/components/renderer.h"
 
 #include "editor/Editor.h"
 
@@ -22,6 +27,8 @@
 #endif
 #include <editor/panels/viewportPanel.h>
 #include <editor/panels/hierarchyPanel.h>
+#include <editor/panels/transformPanel.h>
+using namespace editor;
 
 int g_width = 800;
 int g_height = 600;
@@ -34,8 +41,7 @@ static double g_lastX = 0.0;
 static double g_lastY = 0.0;
 
 
-void FramebufferSizeCallback(GLFWwindow* window,
-	int width, int height) {
+void FramebufferSizeCallback(GLFWwindow* window, int width, int height) {
 	g_width = width;
 	g_height = height;
 	glViewport(0, 0, width, height);
@@ -100,7 +106,6 @@ void MouseInputHandling(GLFWwindow* window, double xpos, double ypos) {
 		g_firstMouse = false;
 		return;
 	}
-
 	const double xoffset = xpos - g_lastX;
 	const double yoffset = g_lastY - ypos; // reversed since y-coordinates go
 
@@ -139,6 +144,46 @@ void MouseButtonInputHandling(GLFWwindow* window, int button, int action, int mo
 	}
 }
 
+// Helper function to recursively render all GameObjects in the scene
+void RenderGameObject(const std::shared_ptr<core::GameObject>& go,
+                      const glm::mat4& parentMatrix,
+                      const glm::mat4& view,
+                      const glm::mat4& projection) {
+    if (!go) return;
+
+    // Get transform component
+    std::shared_ptr<core::Transform> transform = nullptr;
+    for (const auto& comp : go->GetComponents()) {
+        transform = std::dynamic_pointer_cast<core::Transform>(comp);
+        if (transform) break;
+    }
+
+    // Calculate world matrix
+    glm::mat4 localMatrix = transform ? transform->GetLocalMatrix() : glm::mat4(1.0f);
+    glm::mat4 worldMatrix = parentMatrix * localMatrix;
+
+    // Render if this GameObject has a Renderer
+    std::shared_ptr<core::Renderer> renderer = nullptr;
+    for (const auto& comp : go->GetComponents()) {
+        renderer = std::dynamic_pointer_cast<core::Renderer>(comp);
+        if (renderer) break;
+    }
+
+    if (renderer && renderer->GetMaterial()) {
+        // Set MVP matrix in material
+        glm::mat4 mvp = projection * view * worldMatrix;
+        renderer->GetMaterial()->SetMat4("mvpMatrix", mvp);
+
+        // Render with the material
+        renderer->Render(GL_TRIANGLES);
+    }
+
+    // Recursively render children
+    for (const auto& child : go->GetChildren()) {
+        RenderGameObject(child, worldMatrix, view, projection);
+    }
+}
+
 int main() {
 	glfwInit();
 	glfwWindowHint(GLFW_SAMPLES, 4);
@@ -146,7 +191,7 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(g_width, g_height, "LearnOpenGL", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(g_width, g_height, "FinalEngine", nullptr, nullptr);
 	if (window == nullptr) {
 		printf("Failed to create GLFW window\n");
 		glfwTerminate();
@@ -166,7 +211,7 @@ int main() {
 
 	auto& viewport = editor.addPanel<ViewportPanel>(editor);
 	editor.addPanel<HierarchyPanel>();
-
+	editor.addPanel<TransformPanel>();
 
 	glEnable(GL_DEPTH_TEST);
 	glFrontFace(GL_CCW);
@@ -175,12 +220,15 @@ int main() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	// Create shaders
 	const GLuint modelVertexShader = GenerateShader("assets/shaders/modelVertex.vs", GL_VERTEX_SHADER);
 	const GLuint fragmentShader = GenerateShader("assets/shaders/fragment.fs", GL_FRAGMENT_SHADER);
 	const GLuint textureShader = GenerateShader("assets/shaders/texture.fs", GL_FRAGMENT_SHADER);
 
 	int success;
 	char infoLog[512];
+
+	// Model shader program (for Suzanne)
 	const unsigned int modelShaderProgram = glCreateProgram();
 	glAttachShader(modelShaderProgram, modelVertexShader);
 	glAttachShader(modelShaderProgram, fragmentShader);
@@ -190,6 +238,8 @@ int main() {
 		glGetProgramInfoLog(modelShaderProgram, 512, nullptr, infoLog);
 		printf("Error! Making Shader Program: %s\n", infoLog);
 	}
+
+	// Texture shader program (for Quad)
 	const unsigned int textureShaderProgram = glCreateProgram();
 	glAttachShader(textureShaderProgram, modelVertexShader);
 	glAttachShader(textureShaderProgram, textureShader);
@@ -204,17 +254,46 @@ int main() {
 	glDeleteShader(fragmentShader);
 	glDeleteShader(textureShader);
 
-	core::Mesh quad = core::Mesh::GenerateQuad();
-	core::Model quadModel({ quad });
-	quadModel.Translate(glm::vec3(0, 0, -2.5));
-	quadModel.Scale(glm::vec3(5, 5, 1));
+	// Create Scene
+	auto scene = std::make_shared<core::Scene>("Main Scene");
 
-	core::Model suzanne = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
-	core::Texture cmgtGatoTexture("assets/textures/CMGaTo_crop.png");
+	// Create Suzanne GameObject
+	auto suzanneGO = scene->CreateObject("Suzanne");
+	auto suzanneTransform = std::make_shared<core::Transform>();
+	suzanneGO->AddComponent(suzanneTransform);
+
+	// Load Suzanne model and create material
+	core::Model suzanneModel = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
+	auto suzanneMaterial = std::make_shared<core::Material>(modelShaderProgram);
+
+	// Create renderer with meshes from model
+	std::vector<core::Mesh> suzanneMeshes;
+	// Note: We need to extract meshes from the Model class
+	// For now, assuming Model has a way to get meshes or we refactor it
+	auto suzanneRenderer = std::make_shared<core::Renderer>(suzanneModel.GetMeshes(), suzanneMaterial);
+	suzanneGO->AddComponent(suzanneRenderer);
+
+	// Create Quad GameObject
+	auto quadGO = scene->CreateObject("Quad");
+	auto quadTransform = std::make_shared<core::Transform>();
+	quadTransform->position = glm::vec3(0, 0, -2.5f);
+	quadTransform->scale = glm::vec3(5, 5, 1);
+	quadGO->AddComponent(quadTransform);
+
+	// Create quad mesh and material with texture
+	core::Mesh quadMesh = core::Mesh::GenerateQuad();
+	auto quadTexture = std::make_shared<core::Texture>("assets/textures/CMGaTo_crop.png");
+	auto quadMaterial = std::make_shared<core::Material>(textureShaderProgram);
+	quadMaterial->SetTexture("text", quadTexture, 0);
+
+	auto quadRenderer = std::make_shared<core::Renderer>(quadMesh, quadMaterial);
+	quadGO->AddComponent(quadRenderer);
+
+	// Set scene in editor context
+	Editor::editorCtx.currentScene = scene;
 
 	glm::vec4 clearColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
-	glClearColor(clearColor.r,
-		clearColor.g, clearColor.b, clearColor.a);
+	glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 
 	editorCamera = std::make_unique<core::Camera>(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -224,17 +303,9 @@ int main() {
 	glfwSetScrollCallback(window, ScrollCallback);
 	glfwSetCharCallback(window, CharCallback);
 
-	GLint mvpMatrixUniform = glGetUniformLocation(modelShaderProgram, "mvpMatrix");
-	GLint textureModelUniform = glGetUniformLocation(textureShaderProgram, "mvpMatrix");
-	GLint textureUniform = glGetUniformLocation(textureShaderProgram, "text");
-
-	GLenum drawMode = GL_TRIANGLES;
-
 	double currentTime = glfwGetTime();
 	double finishFrameTime = 0.0;
 	float deltaTime = 0.0f;
-
-	editor.ctx();
 
 	ImGuiIO& io = ImGui::GetIO();
 
@@ -248,7 +319,7 @@ int main() {
 		int vw = editor.getViewportWidth();
 		int vh = editor.getViewportHeight();
 		if (vw <= 0 || vh <= 0 || editor.framebuffer() == 0) {
-			// Skip 3D rendering this frame (still draw ImGui)
+			// Skip 3D rendering this frame
 		}
 		else {
 			glBindFramebuffer(GL_FRAMEBUFFER, editor.framebuffer());
@@ -262,27 +333,21 @@ int main() {
 				static_cast<float>(editor.getViewportHeight())
 			);
 
-			if (editor.viewportFocused())
-			{
-				if (!io.WantCaptureMouse && !io.WantCaptureKeyboard)
-				{
+			if (editor.viewportFocused()) {
+				if (!io.WantCaptureMouse && !io.WantCaptureKeyboard) {
 					ProcessInputs(window, deltaTime);
 				}
 			}
 
-			float rotationSpeed = editor.rotation_speed_deg_per_s;
-			suzanne.Rotate(glm::vec3(0.0f, 1.0f, 0.0f), glm::radians(rotationSpeed) * static_cast<float>(deltaTime));
+			// Rotate Suzanne
+			float rotationSpeed = editor.rotationSpeedDegSec;
+			suzanneTransform->rotation.y += rotationSpeed * deltaTime;
 
-			glUseProgram(textureShaderProgram);
-			glUniformMatrix4fv(textureModelUniform, 1, GL_FALSE, glm::value_ptr(projection * view * quadModel.GetModelMatrix()));
-			glActiveTexture(GL_TEXTURE0);
-			glUniform1i(textureUniform, 0);
-			glBindTexture(GL_TEXTURE_2D, cmgtGatoTexture.getId());
-			quadModel.Render(drawMode);
+			// Render all GameObjects in the scene
+			for (const auto& rootGO : scene->Roots()) {
+				RenderGameObject(rootGO, glm::mat4(1.0f), view, projection);
+			}
 
-			glUseProgram(modelShaderProgram);
-			glUniformMatrix4fv(mvpMatrixUniform, 1, GL_FALSE, glm::value_ptr(projection * view * suzanne.GetModelMatrix()));
-			suzanne.Render(drawMode);
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
 
@@ -297,6 +362,7 @@ int main() {
 	editor.shutdown();
 
 	glDeleteProgram(modelShaderProgram);
+	glDeleteProgram(textureShaderProgram);
 	glfwTerminate();
 	return 0;
 }
