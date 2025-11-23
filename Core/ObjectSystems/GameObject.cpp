@@ -9,6 +9,15 @@ namespace core {
         SetName(std::move(name));
     }
 
+
+
+    std::shared_ptr<GameObject> GameObject::Create(std::string name)
+    {
+        auto go = std::shared_ptr<GameObject>(new GameObject(std::move(name)));
+        go->Init();
+        return go;
+    }
+
     void GameObject::SetParent(std::shared_ptr<GameObject> newParent)
     {
         // Always use shared_from_this to get a shared_ptr to self, not shared_ptr<GameObject>(this).
@@ -55,13 +64,16 @@ namespace core {
     const std::vector<std::shared_ptr<GameObject>>& GameObject::GetChildren() const { return m_children; }
 
     std::shared_ptr<GameObject> GameObject::CreateChild(std::string childName) {
-        auto child = std::make_shared<GameObject>(std::move(childName));
+        auto child = GameObject::Create(childName);
         child->SetParent(std::static_pointer_cast<GameObject>(shared_from_this()));
         return child;
     }
 
     void GameObject::AddComponent(const std::shared_ptr<Component>& c) {
         if (!c) return;
+        if (!std::dynamic_pointer_cast<Transform>(c))
+            return; // Prevent adding multiple Transform components
+
         // avoid duplicates of the same instance
         if (std::find(m_components.begin(), m_components.end(), c) == m_components.end()) {
             c->OnAttach(std::static_pointer_cast<GameObject>(shared_from_this()));
@@ -71,6 +83,8 @@ namespace core {
 
     bool GameObject::RemoveComponent(const std::shared_ptr<Component>& c) {
         if (!c) return false;
+        if (std::dynamic_pointer_cast<Transform>(c))
+            return false; // Prevent removing Transform component
         for (size_t i = 0; i < m_components.size(); ++i) {
             if (m_components[i].get() == c.get()) {
                 m_components[i]->OnDetach();

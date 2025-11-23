@@ -4,6 +4,9 @@
 #include <vector>
 #include "ObjectSystems/Object.h"
 #include "ObjectSystems/GameObject.h"
+#include "ObjectSystems/Components/Renderer.h"
+#include "ObjectSystems/Components/Transform.h"
+#include <glm/glm.hpp>
 
 namespace core {
 
@@ -14,12 +17,25 @@ namespace core {
     /// Must keep:
     /// - Scene holds strong refs to root GameObjects so they stay alive.
     /// </remarks>
-    class Scene : public Object {
+    class Scene
+    {
     public:
         /// <summary>
         /// Construct a scene. Name optional.
         /// </summary>
         explicit Scene(std::string name = {});
+
+        /// <summary>
+        /// Set the scene name
+        /// </summary>
+        /// <param name="name">The name to set the scene to.</param>
+        void SetName(std::string name);
+
+        /// <summary>
+        /// Get the scene name.
+        /// </summary>
+        /// <returns>The name of the scene.</returns>
+        const std::string& GetName() const;
 
         /// <summary>
         /// Add an existing GameObject as a root.
@@ -34,13 +50,25 @@ namespace core {
         std::shared_ptr<GameObject> CreateObject(const std::string& name = "NewObject", const std::shared_ptr<core::GameObject> parent = nullptr);
 
         /// <summary>
+        /// Render all GameObjects in the scene using the given view and projection matrices.
+        /// </summary>
+        /// <param name="view">The view matrix to pass to the TheRenderGameObject method</param>
+        /// <param name="projection">The projection matrix to pass to the TheRenderGameObject method</param>
+        void Render(const glm::mat4& view, const glm::mat4& projection);
+        
+        /// <summary>
         /// Return all root GameObjects.
         /// </summary>
         const std::vector<std::shared_ptr<GameObject>>& Roots() const;
 
-        void Draw();
 
     private:
+        void RenderGameObject(const std::shared_ptr<GameObject>& go,
+                              const glm::mat4& parentMatrix,
+                              const glm::mat4& view,
+                              const glm::mat4& projection);
+
+        std::string m_name;
         std::vector<std::shared_ptr<GameObject>> m_roots;
     };
 

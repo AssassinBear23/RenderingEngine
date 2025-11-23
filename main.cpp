@@ -259,8 +259,6 @@ int main() {
 
 	// Create Suzanne GameObject
 	auto suzanneGO = scene->CreateObject("Suzanne");
-	auto suzanneTransform = std::make_shared<core::Transform>();
-	suzanneGO->AddComponent(suzanneTransform);
 
 	// Load Suzanne model and create material
 	core::Model suzanneModel = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
@@ -275,10 +273,8 @@ int main() {
 
 	// Create Quad GameObject
 	auto quadGO = scene->CreateObject("Quad");
-	auto quadTransform = std::make_shared<core::Transform>();
-	quadTransform->position = glm::vec3(0, 0, -2.5f);
-	quadTransform->scale = glm::vec3(5, 5, 1);
-	quadGO->AddComponent(quadTransform);
+	quadGO->transform->position = glm::vec3(0, 0, -2.5f);
+	quadGO->transform->scale = glm::vec3(5, 5, 1);
 
 	// Create quad mesh and material with texture
 	core::Mesh quadMesh = core::Mesh::GenerateQuad();
@@ -341,12 +337,12 @@ int main() {
 
 			// Rotate Suzanne
 			float rotationSpeed = editor.rotationSpeedDegSec;
-			suzanneTransform->rotation.y += rotationSpeed * deltaTime;
+			suzanneGO->transform->rotation.y += rotationSpeed * deltaTime;
 
 			// Render all GameObjects in the scene
 			for (const auto& rootGO : scene->Roots()) {
 				RenderGameObject(rootGO, glm::mat4(1.0f), view, projection);
-			}
+			}	
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}

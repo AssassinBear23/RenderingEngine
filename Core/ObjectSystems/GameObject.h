@@ -4,6 +4,7 @@
 #include <string>
 #include <algorithm>
 #include "Object.h"
+#include "Components/Transform.h"
 
 namespace core {
 
@@ -19,10 +20,14 @@ namespace core {
     /// </remarks>
     class GameObject : public Object {
     public:
+        std::shared_ptr<core::Transform> transform;
+
         /// <summary>
-        /// Construct a GameObject. Name optional.
+        /// Factory Pattern method for creating a new GameObject.
         /// </summary>
-        explicit GameObject(std::string name = {});
+        /// <param name="name"></param>
+        /// <returns></returns>
+        static std::shared_ptr<GameObject> Create(std::string name = {});
 
         /// <summary>
         /// Set this object's parent (handles both sides of the relation)
@@ -73,6 +78,20 @@ namespace core {
         /// </summary>
         const std::vector<std::shared_ptr<Component>>& GetComponents() const;
     private:
+        /// <summary>
+        /// Construct a GameObject. Name optional.
+        /// </summary>
+        explicit GameObject(std::string name = {});
+        
+        /// <summary>
+        /// Initialize the GameObject (called by factory method).
+        /// </summary>
+        void Init()
+        {
+            transform = std::make_shared<core::Transform>();
+            AddComponent(std::static_pointer_cast<Component>(transform));
+        }
+
         std::weak_ptr<GameObject> m_parent;
         std::vector<std::shared_ptr<GameObject>> m_children;
         std::vector<std::shared_ptr<Component>>   m_components;
