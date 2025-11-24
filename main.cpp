@@ -144,46 +144,6 @@ void MouseButtonInputHandling(GLFWwindow* window, int button, int action, int mo
 	}
 }
 
-// Helper function to recursively render all GameObjects in the scene
-void RenderGameObject(const std::shared_ptr<core::GameObject>& go,
-                      const glm::mat4& parentMatrix,
-                      const glm::mat4& view,
-                      const glm::mat4& projection) {
-    if (!go) return;
-
-    // Get transform component
-    std::shared_ptr<core::Transform> transform = nullptr;
-    for (const auto& comp : go->GetComponents()) {
-        transform = std::dynamic_pointer_cast<core::Transform>(comp);
-        if (transform) break;
-    }
-
-    // Calculate world matrix
-    glm::mat4 localMatrix = transform ? transform->GetLocalMatrix() : glm::mat4(1.0f);
-    glm::mat4 worldMatrix = parentMatrix * localMatrix;
-
-    // Render if this GameObject has a Renderer
-    std::shared_ptr<core::Renderer> renderer = nullptr;
-    for (const auto& comp : go->GetComponents()) {
-        renderer = std::dynamic_pointer_cast<core::Renderer>(comp);
-        if (renderer) break;
-    }
-
-    if (renderer && renderer->GetMaterial()) {
-        // Set MVP matrix in material
-        glm::mat4 mvp = projection * view * worldMatrix;
-        renderer->GetMaterial()->SetMat4("mvpMatrix", mvp);
-
-        // Render with the material
-        renderer->Render(GL_TRIANGLES);
-    }
-
-    // Recursively render children
-    for (const auto& child : go->GetChildren()) {
-        RenderGameObject(child, worldMatrix, view, projection);
-    }
-}
-
 int main() {
 	glfwInit();
 	glfwWindowHint(GLFW_SAMPLES, 4);
@@ -256,6 +216,7 @@ int main() {
 
 	// Create Scene
 	auto scene = std::make_shared<core::Scene>("Main Scene");
+	Editor::editorCtx.currentScene = scene;
 
 	// Create Suzanne GameObject
 	auto suzanneGO = scene->CreateObject("Suzanne");
@@ -264,15 +225,13 @@ int main() {
 	core::Model suzanneModel = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
 	auto suzanneMaterial = std::make_shared<core::Material>(modelShaderProgram);
 
-	// Create renderer with meshes from model
-	std::vector<core::Mesh> suzanneMeshes;
-	// Note: We need to extract meshes from the Model class
-	// For now, assuming Model has a way to get meshes or we refactor it
-	auto suzanneRenderer = std::make_shared<core::Renderer>(suzanneModel.GetMeshes(), suzanneMaterial);
-	suzanneGO->AddComponent(suzanneRenderer);
+	auto suzanneRenderer = suzanneGO->AddComponent<core::Renderer>();
+    suzanneRenderer->SetMeshes(suzanneModel.GetMeshes());
+    suzanneRenderer->SetMaterial(suzanneMaterial);
 
 	// Create Quad GameObject
 	auto quadGO = scene->CreateObject("Quad");
+    quadGO->SetParent(suzanneGO);
 	quadGO->transform->position = glm::vec3(0, 0, -2.5f);
 	quadGO->transform->scale = glm::vec3(5, 5, 1);
 
@@ -282,11 +241,9 @@ int main() {
 	auto quadMaterial = std::make_shared<core::Material>(textureShaderProgram);
 	quadMaterial->SetTexture("text", quadTexture, 0);
 
-	auto quadRenderer = std::make_shared<core::Renderer>(quadMesh, quadMaterial);
-	quadGO->AddComponent(quadRenderer);
-
-	// Set scene in editor context
-	Editor::editorCtx.currentScene = scene;
+	auto quadRenderer = quadGO->AddComponent<core::Renderer>();
+	quadRenderer->SetMesh(quadMesh);
+	quadRenderer->SetMaterial(quadMaterial);
 
 	glm::vec4 clearColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
 	glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
@@ -339,10 +296,7 @@ int main() {
 			float rotationSpeed = editor.rotationSpeedDegSec;
 			suzanneGO->transform->rotation.y += rotationSpeed * deltaTime;
 
-			// Render all GameObjects in the scene
-			for (const auto& rootGO : scene->Roots()) {
-				RenderGameObject(rootGO, glm::mat4(1.0f), view, projection);
-			}	
+            scene->Render(view, projection);
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}

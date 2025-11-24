@@ -2,11 +2,15 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "ObjectSystems/Object.h"
-#include "ObjectSystems/GameObject.h"
-#include "ObjectSystems/Components/Renderer.h"
 #include "ObjectSystems/Components/Transform.h"
 #include <glm/glm.hpp>
+
+namespace core // Forward declaration
+{
+    class Object;
+    class GameObject;
+    class Renderer;
+}
 
 namespace core {
 
@@ -43,6 +47,12 @@ namespace core {
         void AddRootGameObject(const std::shared_ptr<GameObject>& go);
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="go"></param>
+        void RemoveRootGameObject(const std::shared_ptr<GameObject>& go);
+
+        /// <summary>
         /// Create a new GameObject and set it's parent. If parent is nullptr, it's a root.
         /// </summary>
         /// <param name="name">The name of the Object to create</param>
@@ -61,15 +71,20 @@ namespace core {
         /// </summary>
         const std::vector<std::shared_ptr<GameObject>>& Roots() const;
 
+        void RegisterRenderer(const std::shared_ptr<Renderer>& renderer);
+        void UnregisterRenderer(const std::shared_ptr<Renderer>& renderer);
 
     private:
-        void RenderGameObject(const std::shared_ptr<GameObject>& go,
-                              const glm::mat4& parentMatrix,
-                              const glm::mat4& view,
-                              const glm::mat4& projection);
+        /// <summary>
+        /// Calculate the world matrix for a GameObject.
+        /// </summary>
+        /// <param name="go"></param>
+        /// <returns></returns>
+        glm::mat4 CalculateWorldMatrix(const std::shared_ptr<GameObject>& go);
 
         std::string m_name;
         std::vector<std::shared_ptr<GameObject>> m_roots;
+        std::vector<std::shared_ptr<Renderer>> m_renderers;
     };
 
 } // namespace core

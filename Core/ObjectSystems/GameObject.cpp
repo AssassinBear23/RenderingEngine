@@ -9,11 +9,10 @@ namespace core {
         SetName(std::move(name));
     }
 
-
-
     std::shared_ptr<GameObject> GameObject::Create(std::string name)
     {
         auto go = std::shared_ptr<GameObject>(new GameObject(std::move(name)));
+        go->m_scene = editor::Editor::editorCtx.currentScene;
         go->Init();
         return go;
     }
@@ -32,6 +31,11 @@ namespace core {
             auto& sibs = old->m_children;
             sibs.erase(std::remove(sibs.begin(), sibs.end(), self), sibs.end());
         }
+        else
+        {
+            // Was a root, remove from scene roots
+            m_scene.lock()->RemoveRootGameObject(self);
+        }
 
         // Set new parent
         m_parent = newParent;
@@ -39,7 +43,8 @@ namespace core {
         // Add to new parent's children 
         if (newParent) {
             newParent->AddChild(self);
-        } else {
+        }
+        else {
             editor::Editor::editorCtx.currentScene->AddRootGameObject(self);
         }
     }
@@ -63,37 +68,6 @@ namespace core {
 
     const std::vector<std::shared_ptr<GameObject>>& GameObject::GetChildren() const { return m_children; }
 
-    std::shared_ptr<GameObject> GameObject::CreateChild(std::string childName) {
-        auto child = GameObject::Create(childName);
-        child->SetParent(std::static_pointer_cast<GameObject>(shared_from_this()));
-        return child;
-    }
-
-    void GameObject::AddComponent(const std::shared_ptr<Component>& c) {
-        if (!c) return;
-        if (!std::dynamic_pointer_cast<Transform>(c))
-            return; // Prevent adding multiple Transform components
-
-        // avoid duplicates of the same instance
-        if (std::find(m_components.begin(), m_components.end(), c) == m_components.end()) {
-            c->OnAttach(std::static_pointer_cast<GameObject>(shared_from_this()));
-            m_components.push_back(c);
-        }
-    }
-
-    bool GameObject::RemoveComponent(const std::shared_ptr<Component>& c) {
-        if (!c) return false;
-        if (std::dynamic_pointer_cast<Transform>(c))
-            return false; // Prevent removing Transform component
-        for (size_t i = 0; i < m_components.size(); ++i) {
-            if (m_components[i].get() == c.get()) {
-                m_components[i]->OnDetach();
-                m_components.erase(m_components.begin() + i);
-                return true;
-            }
-        }
-        return false;
-    }
 
     const std::vector<std::shared_ptr<Component>>& GameObject::GetComponents() const {
         return m_components;

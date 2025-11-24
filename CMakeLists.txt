@@ -3,6 +3,8 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
+set(CMAKE_CXX_STANDARD 20)
+
 set(CMAKE_TOOLCHAIN_FILE "C:\\Users\\beerh\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake")
 
 # Enable Hot Reload for MSVC compilers if supported.

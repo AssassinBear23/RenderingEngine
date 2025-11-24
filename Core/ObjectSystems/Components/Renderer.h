@@ -7,6 +7,8 @@
 
 namespace core
 {
+    class Scene; // Forward declaration
+
     /// <summary>
     /// Renderer component that holds meshes and a material for rendering.
     /// Combines mesh data and rendering properties in one component.
@@ -46,8 +48,17 @@ namespace core
         /// <param name="drawMode">OpenGL draw mode (GL_TRIANGLES, etc.)</param>
         void Render(GLenum drawMode = GL_TRIANGLES);
 
+        ///
+        void OnAttach(std::weak_ptr<GameObject> owner) override;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        void OnDetach() override;
+
     private:
         std::vector<Mesh> m_meshes;
         std::shared_ptr<Material> m_material;
+        std::weak_ptr<Scene> m_scene;
     };
 }
