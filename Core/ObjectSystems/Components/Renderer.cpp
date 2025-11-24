@@ -1,9 +1,12 @@
 #include "Renderer.h"
 #include "../GameObject.h"
 #include "../../scene.h"
+#include "../ComponentFactory.h"
 
 namespace core
 {
+	REGISTER_COMPONENT(Renderer);
+
     void Renderer::Render(GLenum drawMode)
     {
         if (!m_material) return;

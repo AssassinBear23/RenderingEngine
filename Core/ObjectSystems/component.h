@@ -19,6 +19,8 @@ namespace core {
     public:
         virtual ~Component() = default;
 
+        virtual std::string GetTypeName() const { return "Component"; }
+
         /// <summary>
         /// Called by GameObject when this component is attached.
         /// Stores the back-reference to the owner.

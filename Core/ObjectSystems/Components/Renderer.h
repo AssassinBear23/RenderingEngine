@@ -18,6 +18,8 @@ namespace core
     public:
         Renderer() = default;
         
+		std::string GetTypeName() const override { return "Renderer"; }
+
         // Single mesh constructor
         Renderer(const Mesh& mesh, std::shared_ptr<Material> material)
             : m_meshes{mesh}, m_material(material) {}

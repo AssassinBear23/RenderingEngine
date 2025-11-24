@@ -17,6 +17,7 @@ project ("FinalEngine")
 
 # Add source to this project's executable.
 
+find_package(nlohmann_json 3.12.0 CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
@@ -93,6 +94,7 @@ find_package(Stb REQUIRED)
 target_include_directories(FinalEngine PRIVATE ${Stb_INCLUDE_DIR})
 
 target_link_libraries(FinalEngine PRIVATE
+	nlohmann_json::nlohmann_json
 	glad::glad
 	glfw
 	imgui::imgui
@@ -103,5 +105,3 @@ target_link_libraries(FinalEngine PRIVATE
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET FinalEngine PROPERTY CXX_STANDARD 20)
 endif()
-
-# TODO: Add tests and install targets if needed.
