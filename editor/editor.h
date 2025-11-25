@@ -39,11 +39,6 @@ namespace editor
         int    getViewportHeight() const;
         bool   viewportFocused() const;
 
-        /// <summary>
-        /// Rotation speed (degrees/second) used by sample content displayed in the viewport.
-        /// </summary>
-        float rotationSpeedDegSec = 10.0f;
-
         friend class ViewportPanel; // to set m_viewport
 
         static EditorContext editorCtx;

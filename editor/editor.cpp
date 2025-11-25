@@ -1,3 +1,4 @@
+#include "core/sceneManager.h"
 #include "Editor.h"
 #include "panels/ViewportPanel.h"
 #include <cassert>
@@ -75,14 +76,27 @@ namespace editor
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Settings")) {
-            ImGui::SliderFloat("Suzanne Rotation Speed", &rotationSpeedDegSec, 0.0f, 720.0f);
+            if(ImGui::BeginMenu("Scene"))
+            {
+                if (editorCtx.sceneManager)
+                {
+                    auto sceneNames = editorCtx.sceneManager->GetSceneNames();
+                    for (const auto& sceneName : sceneNames)
+                    {
+                        if (ImGui::MenuItem(sceneName.c_str()))
+                        {
+                            editorCtx.sceneManager->LoadScene(sceneName);
+                        }
+                    }
+                }
+                ImGui::EndMenu();
+            }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Windows")) {
             for (auto& p : m_panels) {
                 ImGui::Checkbox(p->name(), &p->isVisible);
             }
-            ImGui::MenuItem("ImGui Demo", nullptr, &editorCtx.showDemo);
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
@@ -95,8 +109,6 @@ namespace editor
         for (auto& p : m_panels)
             if (p->isVisible)
                 p->draw(editorCtx);
-
-        if (editorCtx.showDemo) ImGui::ShowDemoWindow(&editorCtx.showDemo);
 
         ImGui::End(); // DockSpaceHost
     }

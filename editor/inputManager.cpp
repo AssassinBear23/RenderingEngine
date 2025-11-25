@@ -105,6 +105,7 @@ namespace editor
             s_instance->m_lastX = xpos;
             s_instance->m_lastY = ypos;
             s_instance->m_firstMouse = false;
+            return;
         }
 
         // Accumulate mouse delta

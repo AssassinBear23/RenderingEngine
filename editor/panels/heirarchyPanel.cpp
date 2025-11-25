@@ -1,4 +1,5 @@
 #include "hierarchyPanel.h"
+#include "../../Core/sceneManager.h"
 #include "../../core/scene.h"
 #include "../../core/objectSystems/gameObject.h"
 
@@ -38,9 +39,11 @@ namespace editor
     void HierarchyPanel::draw(EditorContext& ctx) {
         ImGui::Begin("Hierarchy", &isVisible);
         
-        if (ctx.currentScene) {
-            if (ImGui::TreeNodeEx(ctx.currentScene->GetName().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
-                for (const auto& root : ctx.currentScene->Roots()) {
+        auto currentScene = ctx.sceneManager->GetCurrentScene();
+
+        if (currentScene) {
+            if (ImGui::TreeNodeEx(currentScene->GetName().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+                for (const auto& root : currentScene->Roots()) {
                     DrawGameObjectNode(root, ctx);
                 }
                 ImGui::TreePop();

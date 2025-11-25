@@ -40,7 +40,7 @@ add_executable(FinalEngine
   "core/assimpLoader.cpp"
   "core/camera.cpp"
   "core/model.cpp"
-  # "core/sceneManager.cpp"
+  "core/sceneManager.cpp"
   "core/scene.cpp"
   "core/rendering/mesh.cpp"
   "core/rendering/texture.cpp"

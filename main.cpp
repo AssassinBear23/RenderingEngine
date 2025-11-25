@@ -2,11 +2,9 @@
 #include "core/camera.h"
 #include "core/material.h"
 #include "core/objectSystems/components/renderer.h"
-#include "core/objectSystems/components/transform.h"
-#include "core/objectSystems/gameObject.h"
 #include "core/rendering/mesh.h"
 #include "core/rendering/texture.h"
-#include "core/scene.h"
+#include "core/sceneManager.h"
 #include "editor/Editor.h"
 #include <editor/inputManager.h>
 #include <editor/panels/hierarchyPanel.h>
@@ -145,36 +143,66 @@ int main()
     glDeleteShader(fragmentShader);
     glDeleteShader(textureShader);
 
-    // Create Scene
-    auto scene = std::make_shared<core::Scene>("Main Scene");
-    Editor::editorCtx.currentScene = scene;
+    auto sceneManager = std::make_shared<core::SceneManager>();
+    Editor::editorCtx.sceneManager = sceneManager;
 
-    // Create Suzanne GameObject
-    auto suzanneGO = scene->CreateObject("Suzanne");
+    // Create Scene 1
+    sceneManager->RegisterScene("Scene 1", [modelShaderProgram, textureShaderProgram](auto scene) {
+        // Create Suzanne GameObject
+        auto suzanneGO = scene->CreateObject("Suzanne");
 
-    // Load Suzanne model and create material
-    core::Model suzanneModel = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
-    auto suzanneMaterial = std::make_shared<core::Material>(modelShaderProgram);
+        // Load Suzanne model and create material
+        core::Model suzanneModel = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
+        auto suzanneMaterial = std::make_shared<core::Material>(modelShaderProgram);
 
-    auto suzanneRenderer = suzanneGO->AddComponent<core::Renderer>();
-    suzanneRenderer->SetMeshes(suzanneModel.GetMeshes());
-    suzanneRenderer->SetMaterial(suzanneMaterial);
+        auto suzanneRenderer = suzanneGO->AddComponent<core::Renderer>();
+        suzanneRenderer->SetMeshes(suzanneModel.GetMeshes());
+        suzanneRenderer->SetMaterial(suzanneMaterial);
 
-    // Create Quad GameObject
-    auto quadGO = scene->CreateObject("Quad");
-    quadGO->SetParent(suzanneGO);
-    quadGO->transform->position = glm::vec3(0, 0, -2.5f);
-    quadGO->transform->scale = glm::vec3(5, 5, 1);
+        // Create Quad GameObject
+        auto quadGO = scene->CreateObject("Quad");
+        quadGO->SetParent(suzanneGO);
+        quadGO->transform->position = glm::vec3(0, 0, -2.5f);
+        quadGO->transform->scale = glm::vec3(5, 5, 1);
 
-    // Create quad mesh and material with texture
-    core::Mesh quadMesh = core::Mesh::GenerateQuad();
-    auto quadTexture = std::make_shared<core::Texture>("assets/textures/CMGaTo_crop.png");
-    auto quadMaterial = std::make_shared<core::Material>(textureShaderProgram);
-    quadMaterial->SetTexture("text", quadTexture, 0);
+        // Create quad mesh and material with texture
+        core::Mesh quadMesh = core::Mesh::GenerateQuad();
+        auto quadTexture = std::make_shared<core::Texture>("assets/textures/CMGaTo_crop.png");
+        auto quadMaterial = std::make_shared<core::Material>(textureShaderProgram);
+        quadMaterial->SetTexture("text", quadTexture, 0);
 
-    auto quadRenderer = quadGO->AddComponent<core::Renderer>();
-    quadRenderer->SetMesh(quadMesh);
-    quadRenderer->SetMaterial(quadMaterial);
+        auto quadRenderer = quadGO->AddComponent<core::Renderer>();
+        quadRenderer->SetMesh(quadMesh);
+        quadRenderer->SetMaterial(quadMaterial);
+
+        return scene;
+                                });
+
+    sceneManager->RegisterScene("Scene 2", [modelShaderProgram, textureShaderProgram](auto scene) {
+        // Create Suzanne GameObject
+        auto suzanneGO = scene->CreateObject("Suzanne1");
+
+        // Load Suzanne model and create material
+        core::Model suzanneModel = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
+        auto suzanneMaterial = std::make_shared<core::Material>(modelShaderProgram);
+
+        auto suzanneRenderer = suzanneGO->AddComponent<core::Renderer>();
+        suzanneRenderer->SetMeshes(suzanneModel.GetMeshes());
+        suzanneRenderer->SetMaterial(suzanneMaterial);
+
+        // Create Suzanne GameObject
+        auto suzanneGO2 = scene->CreateObject("Suzanne2");
+
+        // Load Suzanne model and create material
+        core::Model suzanneModel2 = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
+        auto suzanneMaterial2 = std::make_shared<core::Material>(modelShaderProgram);
+
+        auto suzanneRenderer2 = suzanneGO2->AddComponent<core::Renderer>();
+        suzanneRenderer2->SetMeshes(suzanneModel2.GetMeshes());
+        suzanneRenderer2->SetMaterial(suzanneMaterial2);
+
+        return scene;
+                                });
 
     glm::vec4 clearColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
     glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
@@ -193,6 +221,8 @@ int main()
 
         editor.beginFrame();
         editor.draw();
+
+        auto currentScene = sceneManager->GetCurrentScene();
 
         GLuint fb = editor.framebuffer();
         int vw = editor.getViewportWidth();
@@ -217,10 +247,8 @@ int main()
             if (editor.viewportFocused())
                 inputManager.ProcessInput(window, editorCamera.get(), deltaTime);
 
-            float rotationSpeed = editor.rotationSpeedDegSec;
-            suzanneGO->transform->rotation.y += rotationSpeed * deltaTime;
-
-            scene->Render(view, projection);
+            if (currentScene)
+                currentScene->Render(view, projection);
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
