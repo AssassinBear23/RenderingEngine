@@ -1,9 +1,9 @@
 #pragma once
+#include "ObjectSystems/Components/Transform.h"
+#include <glm/glm.hpp>
 #include <memory>
 #include <string>
 #include <vector>
-#include "ObjectSystems/Components/Transform.h"
-#include <glm/glm.hpp>
 
 namespace core // Forward declaration
 {

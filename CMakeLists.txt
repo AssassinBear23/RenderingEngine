@@ -55,7 +55,7 @@ add_executable(FinalEngine
   "editor/panels/heirarchyPanel.cpp"
   "editor/panels/inspectorPanel.cpp"
   "editor/panels/transformPanel.cpp"
-  )
+   "editor/inputManager.cpp")
 
 add_custom_command(
 		TARGET FinalEngine PRE_BUILD

@@ -1,6 +1,6 @@
-#include "Scene.h"
-#include "ObjectSystems/GameObject.h"
 #include "ObjectSystems/Components/Renderer.h"
+#include "ObjectSystems/GameObject.h"
+#include "Scene.h"
 
 
 namespace core {
