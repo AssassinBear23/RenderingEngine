@@ -60,7 +60,7 @@ namespace core {
 
             auto go = renderer->GetOwner();
 
-            if (!go || !go->IsEnabled() || !renderer->IsEnabled())
+            if (!go || !go->isEnabled || !renderer->isEnabled)
                 continue;
 
             // Calculate world matrix

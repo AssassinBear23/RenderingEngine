@@ -73,6 +73,21 @@ namespace core {
 		SetName(std::move(name));
 	}
 
+	void GameObject::SetChildrenEnabledState(bool enabled)
+	{
+		for (const auto& child : m_children) {
+			child->isEnabled = enabled;
+        }
+	}
+
+	void GameObject::OnEnabledChanged(bool newValue)
+	{
+		// Call base implementation
+        Object::OnEnabledChanged(newValue);
+		// Propagate to children
+		SetChildrenEnabledState(newValue);
+	}
+
 	void GameObject::Serialize(nlohmann::json& out) const
 	{
 		// Base info

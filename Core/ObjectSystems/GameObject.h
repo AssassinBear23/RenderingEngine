@@ -79,6 +79,11 @@ namespace core {
 			return c;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
 		template<typename T>
 		bool RemoveComponent()
 		{
@@ -97,6 +102,11 @@ namespace core {
 			return false;
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
 		template<typename T>
 		std::shared_ptr<T> GetComponent() const
 		{
@@ -137,6 +147,10 @@ namespace core {
 		{
 			transform = AddComponent<Transform>();
 		}
+
+        void SetChildrenEnabledState(bool enabled);
+        void OnEnabledChanged(bool newValue) override;
+
 
 		std::weak_ptr<GameObject> m_parent;
 		std::vector<std::shared_ptr<GameObject>> m_children;

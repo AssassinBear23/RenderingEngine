@@ -2,18 +2,35 @@
 
 namespace core
 {
+	Object::Object()
+	{
+		// Set up the callback for isEnabled changes
+		isEnabled.SetOnChange([this](bool newValue) {
+			OnEnabledChanged(newValue);
+		});
+	}
+
 	void Object::SetName(std::string n) { m_name = std::move(n); }
 	const std::string& Object::GetName() const { return m_name; }
 
+	void Object::OnEnabledChanged(bool newValue)
+	{
+		if (m_destroyed) return;
+		
+		if (newValue)
+			OnEnable();
+		else
+			OnDisable();
+	}
+
 	void Object::Enable()
 	{
-		if (m_enabled || m_destroyed) return;
-		m_enabled = true;  OnEnable();
+		isEnabled = true;
 	}
+
 	void Object::Disable()
 	{
-		if (!m_enabled || m_destroyed) return;
-		m_enabled = false; OnDisable();
+		isEnabled = false;
 	}
 
 	void Object::Destroy()
@@ -22,20 +39,19 @@ namespace core
 		m_destroyed = true; OnDestroy();
 	}
 
-	bool Object::IsEnabled()   const { return m_enabled; }
 	bool Object::IsDestroyed() const { return m_destroyed; }
 
 	void Object::Serialize(nlohmann::json& out) const
 	{
 		out["name"] = m_name;
-		out["enabled"] = m_enabled;
+		out["enabled"] = isEnabled.Get();
 	}
 
 	void Object::Deserialize(const nlohmann::json& in)
 	{
 		if (in.contains("name")) 
-			SetName(m_name = in["name"].get<std::string>());
+			SetName(in["name"].get<std::string>());
 		if (in.contains("enabled"))
-			m_enabled = in["enabled"].get<bool>();
+			isEnabled = in["enabled"].get<bool>();
 	}
 } // namespace core

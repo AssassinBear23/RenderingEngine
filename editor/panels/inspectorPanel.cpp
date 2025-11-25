@@ -10,7 +10,10 @@ namespace editor
 		const auto& selectedObj = ctx.currentSelectedGameObject;
 		if (selectedObj)
 		{
-			ImGui::Text("Selected GameObject: %s", selectedObj->GetName().c_str());
+			// Use & operator to get pointer to the internal bool value
+			ImGui::Checkbox("##enabled", &selectedObj->isEnabled);
+			ImGui::SameLine();
+			ImGui::SeparatorText(("%s", selectedObj->GetName().c_str()));
 
 			// List components
 			const auto& components = selectedObj->GetComponents();

@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 #include "nlohmann/json.hpp"
+#include "property.h"
 
 namespace core {
 /// <summary>
@@ -15,6 +16,7 @@ namespace core {
 /// </remarks>
 class Object : public std::enable_shared_from_this<Object> {
 public:
+    Object();
     virtual ~Object() = default;
 
     /// <summary>
@@ -28,6 +30,12 @@ public:
     const std::string& GetName() const;
 
     /// <summary>
+    /// Enabled state with automatic OnEnable/OnDisable callbacks.
+    /// Can be used directly: object->isEnabled = false;
+    /// </summary>
+    Property<bool> isEnabled{true};
+
+    /// <summary>
     /// Enable this object (OnEnable hook is called).
     /// </summary>
     void Enable();
@@ -36,11 +44,6 @@ public:
     /// Disable this object (OnDisable hook is called).
     /// </summary>
     void Disable();
-
-    /// <summary>
-    /// Returns true if this object is enabled.
-    /// </summary>
-    bool IsEnabled() const;
 
     /// <summary>
     /// Mark this object for destruction (OnDestroy hook is called).
@@ -70,12 +73,13 @@ protected:
     /// Called when the object is destroyed.
     /// </summary>
     virtual void OnDestroy() {}
+    virtual void OnEnabledChanged(bool newValue);
 
 
 private:
     std::string m_name{};
-    bool m_enabled{true};
     bool m_destroyed{false};
+
 };
 
 } // namespace core

@@ -71,7 +71,7 @@ namespace editor
         if (!ImGui::BeginMainMenuBar()) return;
 
         if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Exit")) { /* hook up as needed */ }
+            if (ImGui::MenuItem("Exit")) { glfwSetWindowShouldClose(m_window, true); }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Settings")) {
