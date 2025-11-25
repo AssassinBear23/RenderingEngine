@@ -39,6 +39,8 @@ static bool g_rotating = false;
 static bool g_firstMouse = true;
 static double g_lastX = 0.0;
 static double g_lastY = 0.0;
+static double g_mouseDeltaX = 0.0;
+static double g_mouseDeltaY = 0.0;
 
 
 void FramebufferSizeCallback(GLFWwindow* window, int width, int height) {
@@ -87,14 +89,25 @@ void KeyboardInputHandling(GLFWwindow* window, int key, int scancode, int action
 }
 
 void ProcessInputs(GLFWwindow* window, const float deltaTime) {
-	float speed_multiplier = g_keymap[GLFW_KEY_LEFT_SHIFT] ? 5.0f : 1.0f;
+    // Apply rotation
+    if (g_rotating && (g_mouseDeltaX != 0.0 || g_mouseDeltaY != 0.0)) {
+        editorCamera->PivotRotate(glm::vec2(
+            static_cast<float>(g_mouseDeltaX),
+            static_cast<float>(g_mouseDeltaY)
+        ));
+        g_mouseDeltaX = 0.0;
+        g_mouseDeltaY = 0.0;
+    }
 
-	if (g_keymap[GLFW_KEY_W]) editorCamera->MoveForward(speed_multiplier * deltaTime);
-	if (g_keymap[GLFW_KEY_S]) editorCamera->MoveBackward(speed_multiplier * deltaTime);
-	if (g_keymap[GLFW_KEY_A]) editorCamera->MoveLeft(speed_multiplier * deltaTime);
-	if (g_keymap[GLFW_KEY_D]) editorCamera->MoveRight(speed_multiplier * deltaTime);
-	if (g_keymap[GLFW_KEY_Q]) editorCamera->MoveDown(speed_multiplier * deltaTime);
-	if (g_keymap[GLFW_KEY_E]) editorCamera->MoveUp(speed_multiplier * deltaTime);
+    // Then apply movement with updated vectors
+    float speed_multiplier = g_keymap[GLFW_KEY_LEFT_SHIFT] ? 5.0f : 1.0f;
+
+    if (g_keymap[GLFW_KEY_W]) editorCamera->MoveForward(speed_multiplier * deltaTime);
+    if (g_keymap[GLFW_KEY_S]) editorCamera->MoveBackward(speed_multiplier * deltaTime);
+    if (g_keymap[GLFW_KEY_A]) editorCamera->MoveLeft(speed_multiplier * deltaTime);
+    if (g_keymap[GLFW_KEY_D]) editorCamera->MoveRight(speed_multiplier * deltaTime);
+    if (g_keymap[GLFW_KEY_Q]) editorCamera->MoveDown(speed_multiplier * deltaTime);
+    if (g_keymap[GLFW_KEY_E]) editorCamera->MoveUp(speed_multiplier * deltaTime);
 }
 
 void MouseInputHandling(GLFWwindow* window, double xpos, double ypos) {
@@ -107,14 +120,13 @@ void MouseInputHandling(GLFWwindow* window, double xpos, double ypos) {
 		g_firstMouse = false;
 		return;
 	}
-	const double xoffset = xpos - g_lastX;
-	const double yoffset = g_lastY - ypos; // reversed since y-coordinates go
+    
+    // Accumulate deltas instead of applying immediately
+    g_mouseDeltaX += xpos - g_lastX;
+    g_mouseDeltaY += g_lastY - ypos;
 
 	g_lastX = xpos;
 	g_lastY = ypos;
-
-	editorCamera->PivotRotate(glm::vec2(static_cast<float>(xoffset),
-		static_cast<float>(yoffset)));
 }
 
 void ScrollCallback(GLFWwindow* window, double xoff, double yoff) {
