@@ -10,6 +10,7 @@
 #include <editor/panels/hierarchyPanel.h>
 #include <editor/panels/transformPanel.h>
 #include <editor/panels/viewportPanel.h>
+#include <editor/panels/inspectorPanel.h>
 #include <fstream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -95,7 +96,8 @@ int main()
 
     auto& viewport = editor.addPanel<ViewportPanel>(editor);
     editor.addPanel<HierarchyPanel>();
-    editor.addPanel<TransformPanel>();
+	// editor.addPanel<TransformPanel>(); // No longer needed due to InspectorPanel functioning
+    editor.addPanel<InspectorPanel>();
 
     InputManager inputManager;
     inputManager.Initialize(window);
@@ -203,6 +205,8 @@ int main()
 
         return scene;
                                 });
+
+	sceneManager->LoadScene("Scene 1");
 
     glm::vec4 clearColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
     glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);

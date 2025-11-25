@@ -1,7 +1,6 @@
 #include "core/sceneManager.h"
 #include "Editor.h"
 #include "panels/ViewportPanel.h"
-#include <cassert>
 
 namespace editor
 {
@@ -58,9 +57,9 @@ namespace editor
         ImGui::SetNextWindowSize(vp->WorkSize);
         ImGui::SetNextWindowViewport(vp->ID);
 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, m_windowBorderSize);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, m_windowBorderSize);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, m_windowPadding);
         ImGui::Begin("DockSpaceHost", nullptr, window_flags);
         ImGui::PopStyleVar(3);
 
@@ -76,7 +75,7 @@ namespace editor
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Settings")) {
-            if(ImGui::BeginMenu("Scene"))
+            if (ImGui::BeginMenu("Scene"))
             {
                 if (editorCtx.sceneManager)
                 {
@@ -89,6 +88,14 @@ namespace editor
                         }
                     }
                 }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Extra Options"))
+            {
+                ImGui::DragFloat("Font Scale", &ImGui::GetIO().FontGlobalScale, 0.01f, 0.5f, 3.0f);
+                ImGui::DragFloat("Window Rounding", &m_windowRoundingValue, 0.1f, 0.0f, 12.0f);
+                ImGui::DragFloat("Window Border Size", &m_windowBorderSize, 0.1f, 0.0f, 5.0f);
+                ImGui::DragFloat2("Window Padding", &m_windowPadding[0], 0.1f, 0.0f, 20.0f);
                 ImGui::EndMenu();
             }
             ImGui::EndMenu();

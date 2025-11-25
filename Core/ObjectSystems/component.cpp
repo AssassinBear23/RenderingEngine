@@ -10,4 +10,9 @@ namespace core
     std::shared_ptr<GameObject> Component::GetOwner() const {
         return m_owner.lock();
     }
+
+    void Component::DrawGui()
+    {
+		ImGui::Text("No GUI implemented for %s", GetTypeName().c_str());
+    }
 } // namespace core

@@ -19,6 +19,8 @@ namespace core
 
         glm::mat4 GetLocalMatrix() const;
         
+        void DrawGui() override;
+
         // Serialization
         void Serialize(nlohmann::json& out) const override;
         void Deserialize(const nlohmann::json& in) override;

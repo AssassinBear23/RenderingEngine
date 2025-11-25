@@ -17,6 +17,13 @@ namespace core
 		return mat;
 	}
 
+	void Transform::DrawGui()
+	{
+		ImGui::DragFloat3("Position", &position.x, 0.1f);
+		ImGui::DragFloat3("Rotation", &rotation.x, 1.0f);
+		ImGui::DragFloat3("Scale", &scale.x, 0.01f);
+	}
+
 	void Transform::Serialize(nlohmann::json& out) const {
 		Component::Serialize(out);
 		out["position"] = { position.x, position.y, position.z };

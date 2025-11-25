@@ -52,6 +52,10 @@ namespace editor
 
         std::vector<std::unique_ptr<Panel>> m_panels;
 
+        float m_windowRoundingValue = 0.0f;
+        float m_windowBorderSize = 0.0f;
+        ImVec2 m_windowPadding = ImVec2(0.0f, 0.0f);
+
         // Pointers to special panels we want to expose
         class ViewportPanel* m_viewport = nullptr;
 

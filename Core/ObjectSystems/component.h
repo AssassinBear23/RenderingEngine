@@ -1,6 +1,8 @@
 #pragma once
 #include <memory>
+#include <imgui.h>
 #include "Object.h"
+
 
 namespace core {
 
@@ -36,6 +38,8 @@ namespace core {
         /// Returns a shared_ptr to the owner, or null if it no longer exists.
         /// </summary>
         std::shared_ptr<GameObject> GetOwner() const;
+
+        virtual void DrawGui();
 
     private:
         std::weak_ptr<GameObject> m_owner;
