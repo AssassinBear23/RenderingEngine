@@ -50,6 +50,8 @@ namespace core
         /// <param name="drawMode">OpenGL draw mode (GL_TRIANGLES, etc.)</param>
         void Render(GLenum drawMode = GL_TRIANGLES);
 
+        void DrawGui() override;
+
         ///
         void OnAttach(std::weak_ptr<GameObject> owner) override;
 

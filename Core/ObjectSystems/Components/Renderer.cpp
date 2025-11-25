@@ -18,6 +18,12 @@ namespace core
         }
     }
 
+    void Renderer::DrawGui()
+    {
+        ImGui::Text("Meshes: %zu", m_meshes.size());
+		ImGui::Text("Material: %s", m_material ? "Set" : "Not Set");
+    }
+
     void Renderer::OnAttach(std::weak_ptr<GameObject> owner)
     {
         Component::OnAttach(owner);
