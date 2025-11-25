@@ -77,6 +77,7 @@ GLuint GenerateShader(const std::string& shaderPath, GLuint shaderType) {
 
 void KeyboardInputHandling(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+
 	if (action == GLFW_PRESS) {
 		g_keymap[key] = true;
 	}
@@ -286,11 +287,8 @@ int main() {
 				static_cast<float>(editor.getViewportHeight())
 			);
 
-			if (editor.viewportFocused()) {
-				if (!io.WantCaptureMouse && !io.WantCaptureKeyboard) {
-					ProcessInputs(window, deltaTime);
-				}
-			}
+			if (editor.viewportFocused())
+				ProcessInputs(window, deltaTime);
 
 			// Rotate Suzanne
 			float rotationSpeed = editor.rotationSpeedDegSec;
