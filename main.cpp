@@ -237,15 +237,15 @@ int main()
             glViewport(0, 0, editor.getViewportWidth(), editor.getViewportHeight());
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+            if (editor.viewportFocused())
+                inputManager.ProcessInput(window, editorCamera.get(), deltaTime);
+
             // Render 3D scene
             glm::mat4 view = editorCamera->GetViewMatrix();
             glm::mat4 projection = editorCamera->GetProjectionMatrix(
                 static_cast<float>(editor.getViewportWidth()),
                 static_cast<float>(editor.getViewportHeight())
             );
-
-            if (editor.viewportFocused())
-                inputManager.ProcessInput(window, editorCamera.get(), deltaTime);
 
             if (currentScene)
                 currentScene->Render(view, projection);
