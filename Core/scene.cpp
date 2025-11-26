@@ -81,6 +81,7 @@ namespace core
             if (renderer->GetMaterial())
             {
                 renderer->GetMaterial()->SetMat4("mvpMatrix", mvp);
+                renderer->GetMaterial()->SetMat4("modelMatrix", worldMatrix);
                 renderer->Render();
             }
         }

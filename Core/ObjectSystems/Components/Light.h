@@ -10,10 +10,10 @@ namespace core
 {   
     struct LightData
     {
-        glm::vec3 positions[4];  // xyz = position
-        glm::vec4 colors[4];     // rgba
-        int numLights;           // Number of active lights
-        float padding[6];        // Align to total of 128 bytes
+        glm::vec4 positions[4];     // xyz = position
+        glm::vec4 colors[4];        // rgba
+        int numLights;              // Number of active lights
+        float padding[3];           // Align to total of 128 bytes
     };
 
     class Scene;

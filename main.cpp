@@ -118,6 +118,7 @@ int main()
     const GLuint fragmentShader = GenerateShader("assets/shaders/fragment.fs", GL_FRAGMENT_SHADER);
     const GLuint textureShader = GenerateShader("assets/shaders/texture.fs", GL_FRAGMENT_SHADER);
     const GLuint lightBulbShader = GenerateShader("assets/shaders/fragmentLightBulb.fs", GL_FRAGMENT_SHADER);
+    const GLuint litSurfaceShader = GenerateShader("assets/shaders/litFragment.fs", GL_FRAGMENT_SHADER);
 
     int success;
     char infoLog[512];
@@ -159,6 +160,17 @@ int main()
         printf("Error! Making Lightbulb Shader Program: %s\n", infoLog);
     }
 
+    const unsigned int litSurfaceProgram = glCreateProgram();
+    glAttachShader(litSurfaceProgram, modelVertexShader);
+    glAttachShader(litSurfaceProgram, litSurfaceShader);
+    glLinkProgram(litSurfaceProgram);
+    glGetProgramiv(litSurfaceProgram, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        glGetProgramInfoLog(litSurfaceProgram, 512, nullptr, infoLog);
+        printf("Error! Making Lit Surface Shader Program: %s\n", infoLog);
+    }
+
     // Create UBO for lights
     GLuint uboLights;
     glGenBuffers(1, &uboLights);
@@ -181,6 +193,7 @@ int main()
     glDeleteShader(fragmentShader);
     glDeleteShader(textureShader);
     glDeleteShader(lightBulbShader);
+    glDeleteShader(litSurfaceShader);
 
     auto sceneManager = std::make_shared<core::SceneManager>();
     Editor::editorCtx.sceneManager = sceneManager;
@@ -234,7 +247,7 @@ int main()
         return scene;
         });
 
-    sceneManager->RegisterScene("Scene 2", [modelShaderProgram, textureShaderProgram](auto scene) {
+    sceneManager->RegisterScene("Scene 2", [modelShaderProgram, litSurfaceProgram, lightBulbShaderProgram](auto scene) {
         // Create Suzanne GameObject
         auto suzanneGO = scene->CreateObject("Suzanne1");
 
@@ -251,11 +264,28 @@ int main()
 
         // Load Suzanne model and create material
         core::Model suzanneModel2 = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
-        auto suzanneMaterial2 = std::make_shared<core::Material>(modelShaderProgram);
+        auto suzanneMaterial2 = std::make_shared<core::Material>(litSurfaceProgram);
 
         auto suzanneRenderer2 = suzanneGO2->AddComponent<core::Renderer>();
         suzanneRenderer2->SetMeshes(suzanneModel2.GetMeshes());
         suzanneRenderer2->SetMaterial(suzanneMaterial2);
+
+        auto lightGO = scene->CreateObject("Light");
+
+        // Load model and create material with lightbulb shader
+        core::Model lightModel = core::AssimpLoader::loadModel("assets/models/lightBulbModel.obj");
+        auto lightMaterial = std::make_shared<core::Material>(lightBulbShaderProgram);
+
+        // Add Renderer FIRST (before Light)
+        auto lightRenderer = lightGO->AddComponent<core::Renderer>();
+        lightRenderer->SetMeshes(lightModel.GetMeshes());
+        lightRenderer->SetMaterial(lightMaterial);
+
+        lightGO->transform->position = glm::vec3(2.0f, 2.0f, 2.0f);
+        lightGO->transform->scale = glm::vec3(.1f, .1f, .1f);
+
+        auto lightComp = lightGO->AddComponent<core::Light>();
+        lightComp->color = glm::vec4(1.0f, 0.8f, 0.2f, 1.0f); // Orange color
 
         return scene;
         });
@@ -321,7 +351,8 @@ int main()
 
     glDeleteProgram(modelShaderProgram);
     glDeleteProgram(textureShaderProgram);
-    glDeleteProgram(lightBulbShaderProgram); // ADD THIS to clean up light bulb shader program
+    glDeleteProgram(lightBulbShaderProgram);
+    glDeleteProgram(litSurfaceProgram);
     glfwTerminate();
     return 0;
 }
