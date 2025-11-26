@@ -1,5 +1,6 @@
 #include "Component.h"
 #include "GameObject.h" // only needed for the full type; safe include here
+#include <imgui.h>
 
 namespace core 
 {

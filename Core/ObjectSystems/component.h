@@ -1,8 +1,9 @@
 #pragma once
-#include <memory>
-#include <imgui.h>
 #include "Object.h"
-
+#include <memory>
+#include <string>
+#include "property.h"
+#include <ImGui.h>
 
 namespace core {
 
@@ -19,6 +20,7 @@ namespace core {
     /// </remarks>
     class Component : public Object {
     public:
+        Component() = default;
         virtual ~Component() = default;
 
         virtual std::string GetTypeName() const { return "Component"; }

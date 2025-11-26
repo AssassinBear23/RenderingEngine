@@ -38,10 +38,11 @@ endif()
 add_executable(FinalEngine
   "main.cpp"
   "core/assimpLoader.cpp"
-  "core/camera.cpp"
   "core/model.cpp"
-  "core/sceneManager.cpp"
+  "core/material.cpp"
   "core/scene.cpp"
+  "core/camera.cpp"
+  "core/sceneManager.cpp"
   "core/rendering/mesh.cpp"
   "core/rendering/texture.cpp"
   "core/objectSystems/components/renderer.cpp"
@@ -49,13 +50,14 @@ add_executable(FinalEngine
   "core/objectSystems/component.cpp"
   "core/objectSystems/gameObject.cpp"
   "core/objectSystems/components/Transform.cpp"
-  "Core/material.cpp"
+  "core/ObjectSystems/Components/Light.cpp"
   "editor/editor.cpp"
+  "editor/inputManager.cpp"
   "editor/panels/viewportPanel.cpp"
   "editor/panels/heirarchyPanel.cpp"
   "editor/panels/inspectorPanel.cpp"
   "editor/panels/transformPanel.cpp"
-   "editor/inputManager.cpp")
+)
 
 add_custom_command(
 		TARGET FinalEngine PRE_BUILD

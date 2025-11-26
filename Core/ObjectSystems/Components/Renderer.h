@@ -1,8 +1,11 @@
 #pragma once
-#include "../Component.h"
-#include "../../Rendering/mesh.h"
 #include "../../material.h"
+#include "../../Rendering/mesh.h"
+#include "../Component.h"
+#include <core/ObjectSystems/gameObject.h>
+#include <glad/glad.h>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace core

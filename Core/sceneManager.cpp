@@ -3,7 +3,7 @@
 
 namespace core
 {
-    bool SceneManager::LoadScene(const std::string& sceneName)
+    bool SceneManager::LoadScene(const std::string& sceneName, GLuint uboLights)
     {
         if (sceneName.empty()) return false;
 
@@ -14,6 +14,11 @@ namespace core
         m_currentScene = std::make_shared<core::Scene>(sceneName);
         editor::Editor::editorCtx.currentScene = m_currentScene;
         
+        if(m_internalUbo != uboLights)
+            m_internalUbo = uboLights;
+
+        m_currentScene->SetLightUBO(uboLights);
+
         // Population of the scene after bare scene creation.
         it->second(m_currentScene);
         return true;

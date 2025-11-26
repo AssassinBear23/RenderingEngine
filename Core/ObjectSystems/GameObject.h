@@ -1,10 +1,9 @@
 #pragma once
-#include <memory>
-#include <vector>
-#include <string>
-#include <algorithm>
-#include "Object.h"
 #include "Components/Transform.h"
+#include "Object.h"
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace core {
 

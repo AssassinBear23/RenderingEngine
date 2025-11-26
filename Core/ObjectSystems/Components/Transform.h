@@ -1,8 +1,8 @@
 #pragma once
 
+#include "../component.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include "../component.h"
 
 namespace core
 {

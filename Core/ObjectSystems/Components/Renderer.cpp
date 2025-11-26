@@ -1,7 +1,11 @@
-#include "Renderer.h"
-#include "../GameObject.h"
 #include "../../scene.h"
 #include "../ComponentFactory.h"
+#include "../GameObject.h"
+#include "Renderer.h"
+#include <core/ObjectSystems/component.h>
+#include <glad/glad.h>
+#include <imgui.h>
+#include <memory>
 
 namespace core
 {

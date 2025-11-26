@@ -1,5 +1,7 @@
 #pragma once
 #include <functional>
+#include <type_traits>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace core {
 
@@ -23,6 +25,13 @@ private:
         
         // Implicit conversion to pointer
         operator T*() { return &m_property->m_value; }
+        
+        // For glm types, provide access to underlying value_ptr
+        // This allows ImGui functions to work directly
+        template<typename U = T>
+        auto ValuePtr() -> decltype(glm::value_ptr(std::declval<U&>())) {
+            return glm::value_ptr(m_property->m_value);
+        }
         
     private:
         Property* m_property;
@@ -58,6 +67,12 @@ public:
 
     // Get the raw value
     T Get() const { return m_value; }
+    
+    // Direct access to value_ptr for glm types
+    template<typename U = T>
+    auto ValuePtr() -> decltype(glm::value_ptr(std::declval<U&>())) {
+        return glm::value_ptr(m_value);
+    }
 
 private:
     friend class Proxy;

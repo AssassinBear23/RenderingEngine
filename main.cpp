@@ -1,27 +1,29 @@
 ﻿#include "core/assimpLoader.h"
 #include "core/camera.h"
 #include "core/material.h"
-#include "core/objectSystems/components/renderer.h"
+#include "core/model.h"
+#include "core/objectSystems/components/Renderer.h"
+#include "core/objectSystems/components/Light.h"
 #include "core/rendering/mesh.h"
 #include "core/rendering/texture.h"
+#include "core/scene.h"
 #include "core/sceneManager.h"
 #include "editor/Editor.h"
+#include <cstdio>
 #include <editor/inputManager.h>
 #include <editor/panels/hierarchyPanel.h>
-#include <editor/panels/transformPanel.h>
-#include <editor/panels/viewportPanel.h>
 #include <editor/panels/inspectorPanel.h>
+#include <editor/panels/viewportPanel.h>
 #include <fstream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/ext/matrix_float4x4.hpp>
+#include <glm/ext/vector_float3.hpp>
+#include <glm/ext/vector_float4.hpp>
 #include <memory>
 #include <sstream>
+#include <string>
 #include <unordered_map>
-
-#define VSTUDIO
-#ifdef VSTUDIO
-#include <imgui.h>
-#endif
 using namespace editor;
 
 int g_width = 800;
@@ -35,6 +37,8 @@ static double g_lastX = 0.0;
 static double g_lastY = 0.0;
 static double g_mouseDeltaX = 0.0;
 static double g_mouseDeltaY = 0.0;
+
+
 
 std::string ReadFileToString(const std::string& filePath)
 {
@@ -96,7 +100,7 @@ int main()
 
     auto& viewport = editor.addPanel<ViewportPanel>(editor);
     editor.addPanel<HierarchyPanel>();
-	// editor.addPanel<TransformPanel>(); // No longer needed due to InspectorPanel functioning
+    // editor.addPanel<TransformPanel>(); // No longer needed due to InspectorPanel functioning
     editor.addPanel<InspectorPanel>();
 
     InputManager inputManager;
@@ -113,9 +117,11 @@ int main()
     const GLuint modelVertexShader = GenerateShader("assets/shaders/modelVertex.vs", GL_VERTEX_SHADER);
     const GLuint fragmentShader = GenerateShader("assets/shaders/fragment.fs", GL_FRAGMENT_SHADER);
     const GLuint textureShader = GenerateShader("assets/shaders/texture.fs", GL_FRAGMENT_SHADER);
+    const GLuint lightBulbShader = GenerateShader("assets/shaders/fragmentLightBulb.fs", GL_FRAGMENT_SHADER);
 
     int success;
     char infoLog[512];
+
 
     // Model shader program (for Suzanne)
     const unsigned int modelShaderProgram = glCreateProgram();
@@ -141,15 +147,46 @@ int main()
         printf("Error! Making Shader Program: %s\n", infoLog);
     }
 
+    // Lightbulb shader program (for light gizmos)
+    const unsigned int lightBulbShaderProgram = glCreateProgram();
+    glAttachShader(lightBulbShaderProgram, modelVertexShader);
+    glAttachShader(lightBulbShaderProgram, lightBulbShader);
+    glLinkProgram(lightBulbShaderProgram);
+    glGetProgramiv(lightBulbShaderProgram, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        glGetProgramInfoLog(lightBulbShaderProgram, 512, nullptr, infoLog);
+        printf("Error! Making Lightbulb Shader Program: %s\n", infoLog);
+    }
+
+    // Create UBO for lights
+    GLuint uboLights;
+    glGenBuffers(1, &uboLights);
+    glBindBuffer(GL_UNIFORM_BUFFER, uboLights);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(core::LightData), nullptr, GL_DYNAMIC_DRAW);
+
+    // Bind to binding point 0
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, uboLights);
+
+    // Link shader programs to the same binding point
+    GLuint lightBlockIndex = glGetUniformBlockIndex(modelShaderProgram, "LightBlock");
+    glUniformBlockBinding(modelShaderProgram, lightBlockIndex, 0);
+
+    lightBlockIndex = glGetUniformBlockIndex(textureShaderProgram, "LightBlock");
+    glUniformBlockBinding(textureShaderProgram, lightBlockIndex, 0);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, 0); // Unbind
+
     glDeleteShader(modelVertexShader);
     glDeleteShader(fragmentShader);
     glDeleteShader(textureShader);
+    glDeleteShader(lightBulbShader);
 
     auto sceneManager = std::make_shared<core::SceneManager>();
     Editor::editorCtx.sceneManager = sceneManager;
 
     // Create Scene 1
-    sceneManager->RegisterScene("Scene 1", [modelShaderProgram, textureShaderProgram](auto scene) {
+    sceneManager->RegisterScene("Scene 1", [modelShaderProgram, textureShaderProgram, lightBulbShaderProgram](auto scene) {
         // Create Suzanne GameObject
         auto suzanneGO = scene->CreateObject("Suzanne");
 
@@ -177,8 +214,25 @@ int main()
         quadRenderer->SetMesh(quadMesh);
         quadRenderer->SetMaterial(quadMaterial);
 
+        auto lightGO = scene->CreateObject("Light");
+        
+        // Load model and create material with lightbulb shader
+        core::Model lightModel = core::AssimpLoader::loadModel("assets/models/lightBulbModel.obj");
+        auto lightMaterial = std::make_shared<core::Material>(lightBulbShaderProgram);
+
+        // Add Renderer FIRST (before Light)
+        auto lightRenderer = lightGO->AddComponent<core::Renderer>();
+        lightRenderer->SetMeshes(lightModel.GetMeshes());
+        lightRenderer->SetMaterial(lightMaterial);
+
+        lightGO->transform->position = glm::vec3(2.0f, 2.0f, 2.0f);
+        lightGO->transform->scale = glm::vec3(.1f, .1f, .1f);
+
+        auto lightComp = lightGO->AddComponent<core::Light>();
+        lightComp->color = glm::vec4(1.0f, 0.8f, 0.2f, 1.0f); // Orange color
+
         return scene;
-                                });
+        });
 
     sceneManager->RegisterScene("Scene 2", [modelShaderProgram, textureShaderProgram](auto scene) {
         // Create Suzanne GameObject
@@ -204,9 +258,9 @@ int main()
         suzanneRenderer2->SetMaterial(suzanneMaterial2);
 
         return scene;
-                                });
+        });
 
-	sceneManager->LoadScene("Scene 1");
+    sceneManager->LoadScene("Scene 1", uboLights);
 
     glm::vec4 clearColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
     glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
@@ -216,8 +270,6 @@ int main()
     double currentTime = glfwGetTime();
     double finishFrameTime = 0.0;
     float deltaTime = 0.0f;
-
-    ImGuiIO& io = ImGui::GetIO();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -269,6 +321,7 @@ int main()
 
     glDeleteProgram(modelShaderProgram);
     glDeleteProgram(textureShaderProgram);
+    glDeleteProgram(lightBulbShaderProgram); // ADD THIS to clean up light bulb shader program
     glfwTerminate();
     return 0;
 }

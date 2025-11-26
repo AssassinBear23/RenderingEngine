@@ -1,6 +1,8 @@
 #pragma once
-#include "ObjectSystems/Components/Transform.h"
-#include <glm/glm.hpp>
+#include <glad/glad.h>
+#include <glm/ext/matrix_float4x4.hpp>
+#include <glm/ext/vector_float3.hpp>
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <vector>
@@ -10,10 +12,11 @@ namespace core // Forward declaration
     class Object;
     class GameObject;
     class Renderer;
+    class Light;
 }
 
-namespace core {
-
+namespace core
+{
     /// <summary>
     /// A collection of root GameObjects.
     /// </summary>
@@ -27,7 +30,7 @@ namespace core {
         /// <summary>
         /// Construct a scene. Name optional.
         /// </summary>
-        explicit Scene(std::string name = {});
+        explicit Scene(std::string name = { });
 
         /// <summary>
         /// Set the scene name
@@ -47,9 +50,9 @@ namespace core {
         void AddRootGameObject(const std::shared_ptr<GameObject>& go);
 
         /// <summary>
-        /// 
+        /// Remove a GameObject from the root GameObjects list.
         /// </summary>
-        /// <param name="go"></param>
+        /// <param name="go">The GameObject to remove from roots.</param>
         void RemoveRootGameObject(const std::shared_ptr<GameObject>& go);
 
         /// <summary>
@@ -65,16 +68,48 @@ namespace core {
         /// <param name="view">The view matrix to pass to the TheRenderGameObject method</param>
         /// <param name="projection">The projection matrix to pass to the TheRenderGameObject method</param>
         void Render(const glm::mat4& view, const glm::mat4& projection);
-        
+
         /// <summary>
         /// Return all root GameObjects.
         /// </summary>
         const std::vector<std::shared_ptr<GameObject>>& Roots() const;
 
-        void RegisterRenderer(const std::shared_ptr<Renderer>& renderer);
-        void UnregisterRenderer(const std::shared_ptr<Renderer>& renderer);
+        // Convenience methods for specific component types
+        void RegisterRenderer(const std::shared_ptr<Renderer>& renderer) { RegisterComponent(renderer, m_renderers); }
+        void UnregisterRenderer(const std::shared_ptr<Renderer>& renderer) { UnregisterComponent(renderer, m_renderers); }
+
+        void RegisterLight(const std::shared_ptr<Light>& light) { RegisterComponent(light, m_lights); }
+        void UnregisterLight(const std::shared_ptr<Light>& light) { UnregisterComponent(light, m_lights); }
+
+        void SetLightUBO(GLuint ubo) { m_uboLights = ubo; }
+
+        // Accessor methods
+        const std::vector<std::shared_ptr<Renderer>>& GetRenderers() const { return m_renderers; }
+        const std::vector<std::shared_ptr<Light>>& GetLights() const { return m_lights; }
 
     private:
+        /// <summary>
+        /// Generic registration for components
+        /// </summary>
+        template<typename T>
+        void RegisterComponent(const std::shared_ptr<T>& component, std::vector<std::shared_ptr<T>>& container)
+        {
+            if (!component) return;
+
+            if (std::find(container.begin(), container.end(), component) == container.end())
+                container.push_back(component);
+        }
+
+        /// <summary>
+        /// Generic unregistration for components
+        /// </summary>
+        template<typename T>
+        void UnregisterComponent(const std::shared_ptr<T>& component, std::vector<std::shared_ptr<T>>& container)
+        {
+            if (!component) return;
+            container.erase(std::remove(container.begin(), container.end(), component), container.end());
+        }
+
         /// <summary>
         /// Calculate the world matrix for a GameObject.
         /// </summary>
@@ -84,6 +119,8 @@ namespace core {
 
         std::string m_name;
         std::vector<std::shared_ptr<GameObject>> m_roots;
+        std::vector<std::shared_ptr<Light>> m_lights;
+        GLuint m_uboLights{ 0 };
         std::vector<std::shared_ptr<Renderer>> m_renderers;
     };
 
