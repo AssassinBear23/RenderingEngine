@@ -6,18 +6,26 @@
 
 namespace core {
     Model AssimpLoader::loadModel(const std::string& path) {
+        printf("Attempting to load model: %s\n", path.c_str());
+        
         Assimp::Importer import;
         const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
 
         if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
-            printf("Error: %s\n", import.GetErrorString());
+            printf("Error loading model [%s]: %s\n", path.c_str(), import.GetErrorString());
             return Model({});
         }
 
+        printf("Model loaded successfully: %s\n", path.c_str());
+        printf("  - Number of meshes: %d\n", scene->mNumMeshes);
+        
         std::string directory = path.substr(0, path.find_last_of('/'));
         std::vector<Mesh> meshes;
         processNode(scene->mRootNode, scene, meshes);
+        
+        printf("  - Processed meshes: %zu\n", meshes.size());
+        
         return Model(meshes);
     }
 
@@ -37,6 +45,9 @@ namespace core {
         std::vector<Vertex> vertices;
         std::vector<GLuint> indices;
         glm::vec2 uvs(0, 0);
+        
+        printf("    Processing mesh with %d vertices and %d faces\n", mesh->mNumVertices, mesh->mNumFaces);
+        
         for(unsigned int i = 0; i < mesh->mNumVertices; i++) {
             if (mesh->mTextureCoords[0] != nullptr) {
                 aiVector3D assimpUVs = mesh->mTextureCoords[0][i];
