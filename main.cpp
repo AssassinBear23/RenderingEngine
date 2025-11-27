@@ -23,6 +23,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <regex>
 #include <unordered_map>
 using namespace editor;
 
@@ -38,7 +39,39 @@ static double g_lastY = 0.0;
 static double g_mouseDeltaX = 0.0;
 static double g_mouseDeltaY = 0.0;
 
+std::string ReadFileToString(const std::string& filePath);
 
+std::string ProcessShaderIncludes(const std::string& source, const std::string& basePath = "assets/shaders/shaderlibrary/")
+{
+    std::string result = source;
+    std::regex includePattern(R"(#include\s+\"([^\"]+)\")");
+    std::smatch match;
+
+    // Keep processing until no more includes found (supports nested includes)
+    while (std::regex_search(result, match, includePattern))
+    {
+        std::string includeFile = match[1].str();
+        std::string includePath = basePath + includeFile;
+
+        printf("Processing #include \"%s\" from %s\n", includeFile.c_str(), includePath.c_str());
+
+        std::string includeContent = ReadFileToString(includePath);
+
+        if (includeContent.empty())
+        {
+            printf("Warning: Could not read include file: %s\n", includePath.c_str());
+        }
+        else
+        {
+            printf("Successfully loaded include: %s (%zu bytes)\n", includeFile.c_str(), includeContent.size());
+        }
+
+        // Replace the #include directive with the file content
+        result = std::regex_replace(result, includePattern, includeContent, std::regex_constants::format_first_only);
+    }
+
+    return result;
+}
 
 std::string ReadFileToString(const std::string& filePath)
 {
@@ -50,8 +83,9 @@ std::string ReadFileToString(const std::string& filePath)
     }
     std::stringstream buffer;
     buffer << fileStream.rdbuf();
-    return buffer.str();
+    return ProcessShaderIncludes(buffer.str());
 }
+
 
 GLuint GenerateShader(const std::string& shaderPath, GLuint shaderType)
 {
@@ -228,7 +262,7 @@ int main()
         quadRenderer->SetMaterial(quadMaterial);
 
         auto lightGO = scene->CreateObject("Light");
-        
+
         // Load model and create material with lightbulb shader
         core::Model lightModel = core::AssimpLoader::loadModel("assets/models/lightBulbModel.obj");
         auto lightMaterial = std::make_shared<core::Material>(lightBulbShaderProgram);
@@ -254,14 +288,15 @@ int main()
 
         // Load Suzanne model and create material
         core::Model suzanneModel = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
-        auto suzanneMaterial = std::make_shared<core::Material>(modelShaderProgram);
+        auto suzanneMaterial = std::make_shared<core::Material>(litSurfaceProgram);
 
         auto suzanneRenderer = suzanneGO->AddComponent<core::Renderer>();
         suzanneRenderer->SetMeshes(suzanneModel.GetMeshes());
         suzanneRenderer->SetMaterial(suzanneMaterial);
 
-        // Create Suzanne GameObject
+        // Create Suzanne2 GameObject
         auto suzanneGO2 = scene->CreateObject("Suzanne2");
+        suzanneGO2->transform->position = glm::vec3(3, 0, 0);
 
         // Load Suzanne model and create material
         core::Model suzanneModel2 = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
@@ -287,6 +322,23 @@ int main()
 
         auto lightComp = lightGO->AddComponent<core::Light>();
         lightComp->color = glm::vec4(1.0f, 0.8f, 0.2f, 1.0f); // Orange color
+
+        auto lightGO2 = scene->CreateObject("Light2");
+
+        // Load model and create material with lightbulb shader
+        core::Model lightModel2 = core::AssimpLoader::loadModel("assets/models/lightBulbModel.obj");
+        auto lightMaterial2 = std::make_shared<core::Material>(lightBulbShaderProgram);
+
+        // Add Renderer FIRST (before Light)
+        auto lightRenderer2 = lightGO2->AddComponent<core::Renderer>();
+        lightRenderer2->SetMeshes(lightModel2.GetMeshes());
+        lightRenderer2->SetMaterial(lightMaterial2);
+
+        lightGO2->transform->position = glm::vec3(-2.0f, 0, -2.0f);
+        lightGO2->transform->scale = glm::vec3(.1f, .1f, .1f);
+
+        auto lightComp2 = lightGO2->AddComponent<core::Light>();
+        lightComp2->color = glm::vec4(0.2f, 0.8f, 1.0f, 1.0f); // Orange color
 
         return scene;
         });
