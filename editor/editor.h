@@ -1,12 +1,12 @@
 #pragma once
-#include <memory>
-#include <vector>
+#include "Panel.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-#include "Panel.h"
+#include <memory>
+#include <vector>
 
 namespace editor
 {

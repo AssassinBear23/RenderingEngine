@@ -1,12 +1,12 @@
 #pragma once
-#include <glad/glad.h>
-#include <iostream>
-#include "../panel.h"
 #include "../editor.h"
+#include "../panel.h"
+#include <glad/glad.h>
 
 namespace editor
 {
-    class ViewportPanel : public Panel {
+    class ViewportPanel : public Panel
+    {
     public:
         explicit ViewportPanel(Editor& editor);
         ~ViewportPanel();

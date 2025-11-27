@@ -98,7 +98,7 @@ int main()
     Editor editor;
     editor.init(window, "#version 400");
 
-    auto& viewport = editor.addPanel<ViewportPanel>(editor);
+    editor.addPanel<ViewportPanel>(editor);
     editor.addPanel<HierarchyPanel>();
     // editor.addPanel<TransformPanel>(); // No longer needed due to InspectorPanel functioning
     editor.addPanel<InspectorPanel>();
@@ -247,6 +247,7 @@ int main()
         return scene;
         });
 
+    // Create Scene 2
     sceneManager->RegisterScene("Scene 2", [modelShaderProgram, litSurfaceProgram, lightBulbShaderProgram](auto scene) {
         // Create Suzanne GameObject
         auto suzanneGO = scene->CreateObject("Suzanne1");
@@ -319,8 +320,8 @@ int main()
         }
         else
         {
-            glBindFramebuffer(GL_FRAMEBUFFER, editor.framebuffer());
-            glViewport(0, 0, editor.getViewportWidth(), editor.getViewportHeight());
+            glBindFramebuffer(GL_FRAMEBUFFER, fb);
+            glViewport(0, 0, vw, vh);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             if (editor.viewportFocused())
@@ -329,8 +330,8 @@ int main()
             // Render 3D scene
             glm::mat4 view = editorCamera->GetViewMatrix();
             glm::mat4 projection = editorCamera->GetProjectionMatrix(
-                static_cast<float>(editor.getViewportWidth()),
-                static_cast<float>(editor.getViewportHeight())
+                static_cast<float>(vw),
+                static_cast<float>(vh)
             );
 
             if (currentScene)
