@@ -32,5 +32,6 @@ void main()
     // Calculate lighting with calculated normal
     vec3 lighting = calculateLighting(fPos, normal);
 
+    FragColor = vec4(normal * 0.5 + 0.5, 1.0); // For debugging normals
     FragColor = vec4(albedo * lighting * ao, 1.0);
 }
