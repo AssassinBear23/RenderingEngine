@@ -27,6 +27,7 @@ namespace core
             return it != m_textures.end() ? it->second.texture : nullptr;
         }
         void SetFloat(const std::string& name, float value) { m_floats[name] = value; }
+        void SetBool(const std::string& name, bool value) { m_bools[name] = value ? 1 : 0; }
         void SetVec3(const std::string& name, const glm::vec3& value) { m_vec3s[name] = value; }
         void SetVec4(const std::string& name, const glm::vec4& value) { m_vec4s[name] = value; }
         void SetMat4(const std::string& name, const glm::mat4& value) { m_mat4s[name] = value; }
@@ -46,6 +47,7 @@ namespace core
 
         std::unordered_map<std::string, TextureData> m_textures;
         std::unordered_map<std::string, float> m_floats;
+        std::unordered_map<std::string, bool> m_bools;
         std::unordered_map<std::string, glm::vec3> m_vec3s;
         std::unordered_map<std::string, glm::vec4> m_vec4s;
         std::unordered_map<std::string, glm::mat4> m_mat4s;

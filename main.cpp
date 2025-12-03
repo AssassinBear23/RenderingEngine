@@ -148,11 +148,11 @@ int main()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Create shaders
-    const GLuint modelVertexShader = GenerateShader("assets/shaders/modelVertex.vs", GL_VERTEX_SHADER);
-    const GLuint fragmentShader = GenerateShader("assets/shaders/fragment.fs", GL_FRAGMENT_SHADER);
-    const GLuint textureShader = GenerateShader("assets/shaders/texture.fs", GL_FRAGMENT_SHADER);
-    const GLuint lightBulbShader = GenerateShader("assets/shaders/fragmentLightBulb.fs", GL_FRAGMENT_SHADER);
-    const GLuint litSurfaceShader = GenerateShader("assets/shaders/litFragment.fs", GL_FRAGMENT_SHADER);
+    const GLuint modelVertexShader = GenerateShader("assets/shaders/modelVertex.vert", GL_VERTEX_SHADER);
+    const GLuint fragmentShader = GenerateShader("assets/shaders/fragment.frag", GL_FRAGMENT_SHADER);
+    const GLuint textureShader = GenerateShader("assets/shaders/texture.frag", GL_FRAGMENT_SHADER);
+    const GLuint lightBulbShader = GenerateShader("assets/shaders/fragmentLightBulb.frag", GL_FRAGMENT_SHADER);
+    const GLuint litSurfaceShader = GenerateShader("assets/shaders/litFragment.frag", GL_FRAGMENT_SHADER);
 
     int success;
     char infoLog[512];
@@ -233,13 +233,29 @@ int main()
     Editor::editorCtx.sceneManager = sceneManager;
 
     // Create Scene 1
-    sceneManager->RegisterScene("Scene 1", [modelShaderProgram, textureShaderProgram, lightBulbShaderProgram](auto scene) {
+    sceneManager->RegisterScene("Scene 1", [modelShaderProgram, textureShaderProgram, lightBulbShaderProgram, litSurfaceProgram](auto scene) {
         // Create Suzanne GameObject
+        auto rockGO = scene->CreateObject("Rock");
+
+        core::Model rockModel = core::AssimpLoader::loadModel("assets/models/rockModel.fbx");
+        auto rockMaterial = std::make_shared<core::Material>(litSurfaceProgram);
+
+        auto rockRenderer = rockGO->AddComponent<core::Renderer>();
+        auto rockTexture = std::make_shared<core::Texture>("assets/textures/rockTexture.jpeg");
+        auto rockAO = std::make_shared<core::Texture>("assets/textures/rockAO.jpeg");
+        auto rockNormal = std::make_shared<core::Texture>("assets/textures/rockNormal.jpeg");
+        rockMaterial->SetTexture("albedoMap", rockTexture, 0);
+        rockMaterial->SetTexture("aoMap", rockAO, 1);
+        rockMaterial->SetTexture("normalMap", rockNormal, 2);
+        rockMaterial->SetBool("useNormalMap", true);
+        rockRenderer->SetMeshes(rockModel.GetMeshes());
+        rockRenderer->SetMaterial(rockMaterial);
+        
         auto suzanneGO = scene->CreateObject("Suzanne");
 
         // Load Suzanne model and create material
         core::Model suzanneModel = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
-        auto suzanneMaterial = std::make_shared<core::Material>(modelShaderProgram);
+        auto suzanneMaterial = std::make_shared<core::Material>(litSurfaceProgram);
 
         auto suzanneRenderer = suzanneGO->AddComponent<core::Renderer>();
         suzanneRenderer->SetMeshes(suzanneModel.GetMeshes());
