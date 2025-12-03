@@ -10,7 +10,7 @@ layout(std140) uniform LightBlock
 
 vec3 calculateLighting(vec3 fragPos, vec3 normal)
 {
-    vec3 ambient = vec3(0.1); // Ambient light
+    vec3 ambient = vec3(0.3); // Ambient light
     vec3 result = ambient;
     vec3 norm = normalize(normal);
 
