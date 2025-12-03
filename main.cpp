@@ -148,7 +148,7 @@ int main()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Create shaders
-    const GLuint modelVertexShader = GenerateShader("assets/shaders/modelVertex.vert", GL_VERTEX_SHADER);
+    const GLuint vertexShader = GenerateShader("assets/shaders/vertex.vert", GL_VERTEX_SHADER);
     const GLuint fragmentShader = GenerateShader("assets/shaders/fragment.frag", GL_FRAGMENT_SHADER);
     const GLuint textureShader = GenerateShader("assets/shaders/texture.frag", GL_FRAGMENT_SHADER);
     const GLuint lightBulbShader = GenerateShader("assets/shaders/fragmentLightBulb.frag", GL_FRAGMENT_SHADER);
@@ -160,7 +160,7 @@ int main()
 
     // Model shader program (for Suzanne)
     const unsigned int modelShaderProgram = glCreateProgram();
-    glAttachShader(modelShaderProgram, modelVertexShader);
+    glAttachShader(modelShaderProgram, vertexShader);
     glAttachShader(modelShaderProgram, fragmentShader);
     glLinkProgram(modelShaderProgram);
     glGetProgramiv(modelShaderProgram, GL_LINK_STATUS, &success);
@@ -172,7 +172,7 @@ int main()
 
     // Texture shader program (for Quad)
     const unsigned int textureShaderProgram = glCreateProgram();
-    glAttachShader(textureShaderProgram, modelVertexShader);
+    glAttachShader(textureShaderProgram, vertexShader);
     glAttachShader(textureShaderProgram, textureShader);
     glLinkProgram(textureShaderProgram);
     glGetProgramiv(textureShaderProgram, GL_LINK_STATUS, &success);
@@ -184,7 +184,7 @@ int main()
 
     // Lightbulb shader program (for light gizmos)
     const unsigned int lightBulbShaderProgram = glCreateProgram();
-    glAttachShader(lightBulbShaderProgram, modelVertexShader);
+    glAttachShader(lightBulbShaderProgram, vertexShader);
     glAttachShader(lightBulbShaderProgram, lightBulbShader);
     glLinkProgram(lightBulbShaderProgram);
     glGetProgramiv(lightBulbShaderProgram, GL_LINK_STATUS, &success);
@@ -195,7 +195,7 @@ int main()
     }
 
     const unsigned int litSurfaceProgram = glCreateProgram();
-    glAttachShader(litSurfaceProgram, modelVertexShader);
+    glAttachShader(litSurfaceProgram, vertexShader);
     glAttachShader(litSurfaceProgram, litSurfaceShader);
     glLinkProgram(litSurfaceProgram);
     glGetProgramiv(litSurfaceProgram, GL_LINK_STATUS, &success);
@@ -223,7 +223,7 @@ int main()
 
     glBindBuffer(GL_UNIFORM_BUFFER, 0); // Unbind
 
-    glDeleteShader(modelVertexShader);
+    glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
     glDeleteShader(textureShader);
     glDeleteShader(lightBulbShader);
@@ -250,12 +250,16 @@ int main()
         rockMaterial->SetBool("useNormalMap", true);
         rockRenderer->SetMeshes(rockModel.GetMeshes());
         rockRenderer->SetMaterial(rockMaterial);
+
+        rockGO->transform->rotation = glm::vec3(-90, 0, 0);
+        rockGO->transform->scale = glm::vec3(0.3f, 0.3f, 0.3f);
         
         auto suzanneGO = scene->CreateObject("Suzanne");
 
         // Load Suzanne model and create material
         core::Model suzanneModel = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
         auto suzanneMaterial = std::make_shared<core::Material>(litSurfaceProgram);
+        suzanneMaterial->SetBool("useNormalMap", false);
 
         auto suzanneRenderer = suzanneGO->AddComponent<core::Renderer>();
         suzanneRenderer->SetMeshes(suzanneModel.GetMeshes());

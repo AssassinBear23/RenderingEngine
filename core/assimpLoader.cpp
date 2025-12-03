@@ -9,9 +9,10 @@ namespace core {
         printf("Attempting to load model: %s\n", path.c_str());
         
         Assimp::Importer import;
-        unsigned int flags = 
+        unsigned int flags =
             aiProcess_Triangulate |            // Convert all polygons to triangles
             aiProcess_FlipUVs |                // OpenGL UV coordinate system
+            aiProcess_GenNormals |             // Generate normals if missing
             aiProcess_CalcTangentSpace |       // For normal mapping (future)
             aiProcess_ValidateDataStructure |  // Validate the imported scene
             aiProcess_ImproveCacheLocality |   // Reorder triangles for GPU cache
