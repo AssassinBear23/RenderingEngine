@@ -8,11 +8,50 @@ namespace core
 {
     REGISTER_COMPONENT(Light);
 
-    void Light::DrawGui()
+    // Used to draw Centered Text
+    static void DrawCenteredText(const char* label, float rightOffset = 0.0f)
     {
-        ImGui::ColorPicker4("Light Color", (&color).ValuePtr());
+        // Calculate text width and center position
+        float textWidth = ImGui::CalcTextSize(label).x;
+        float availableWidth = ImGui::GetContentRegionAvail().x - rightOffset;
+        float textPosX = (availableWidth - textWidth) * 0.5f;
+        
+        if (textPosX > 0)
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + textPosX);
+        
+        ImGui::Text(label);
     }
 
+    void Light::DrawGui()
+    {
+        // Use proxy system to make changes call the callback method.
+        ImGui::ColorPicker4("Light Color", glm::value_ptr(*&color));
+
+        ImGui::Spacing();
+
+        ImGui::SliderFloat("Intensity", &intensity, 0.0f, 10.0f);
+
+        ImGui::Spacing();
+
+        // Left arrow button
+        float buttonWidth = ImGui::GetFrameHeight();
+        if (ImGui::ArrowButton("##light_type_decrease", ImGuiDir_Left))
+            --lightType;
+        
+        ImGui::SameLine();
+        
+        // Draw centered text with right arrow offset
+        std::string lightTypeLabel = std::string("Light Type: ") + core::ToString(lightType.Get());
+        DrawCenteredText(lightTypeLabel.c_str(), buttonWidth);
+        
+        // Align right arrow to the right
+        ImGui::SameLine();
+        float rightArrowPosX = ImGui::GetWindowWidth() - buttonWidth - ImGui::GetStyle().WindowPadding.x;
+        ImGui::SetCursorPosX(rightArrowPosX);
+        
+        if (ImGui::ArrowButton("##light_type_increase", ImGuiDir_Right))
+            ++lightType;
+    }
 
     void Light::UpdateRendererColor(glm::vec4 newColor)
     {

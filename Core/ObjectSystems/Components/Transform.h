@@ -24,5 +24,10 @@ namespace core
         // Serialization
         void Serialize(nlohmann::json& out) const override;
         void Deserialize(const nlohmann::json& in) override;
+
+        glm::vec3 forward() const {
+            glm::quat rot = glm::quat(glm::radians(rotation));
+            return glm::normalize(rot * glm::vec3(0, 0, -1));
+        }
     };
 } // namespace core

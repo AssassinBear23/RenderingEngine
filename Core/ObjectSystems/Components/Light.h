@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Component.h"
+#include "../property.h"
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <memory>
@@ -8,12 +9,74 @@
 
 namespace core
 {   
+    /// <summary>
+    /// Defines the type of light source.
+    /// </summary>
+    enum class LightType : int
+    {
+        Point = 0,       // Emits light in all directions from a point
+        Directional = 1, // Parallel rays like sunlight
+        Spot = 2,        // Cone-shaped light like a flashlight
+        
+        // Helpful for cycling
+        Count = 3
+    };
+
+    // Enable increment/decrement for LightType enum
+    inline LightType& operator++(LightType& type)
+    {
+        type = static_cast<LightType>((static_cast<int>(type) + 1) % static_cast<int>(LightType::Count));
+        return type;
+    }
+
+    inline LightType operator++(LightType& type, int)
+    {
+        LightType temp = type;
+        ++type;
+        return temp;
+    }
+
+    inline LightType& operator--(LightType& type)
+    {
+        int value = static_cast<int>(type);
+        type = static_cast<LightType>((value - 1 + static_cast<int>(LightType::Count)) % static_cast<int>(LightType::Count));
+        return type;
+    }
+
+    inline LightType operator--(LightType& type, int)
+    {
+        LightType temp = type;
+        --type;
+        return temp;
+    }
+
+    // Helper function to convert enum to string
+    inline const char* ToString(LightType type)
+    {
+        switch (type)
+        {
+            case LightType::Point:       return "Point";
+            case LightType::Directional: return "Directional";
+            case LightType::Spot:        return "Spot";
+            default:                     return "Unknown";
+        }
+    }
+    
+    // Helper function to convert enum to int
+    inline const int ToInt(LightType type)
+    {
+        return static_cast<int>(type);
+    }
+
     struct LightData
     {
-        glm::vec4 positions[4];     // xyz = position
-        glm::vec4 colors[4];        // rgba
-        int numLights;              // Number of active lights
-        float padding[3];           // Align to total of 128 bytes
+        glm::vec4 positions[4];     // 64 bytes (use vec4 for vec3 data, std140 pads anyway)
+        glm::vec4 directions[4];    // 64 bytes
+        glm::vec4 colors[4];        // 64 bytes
+        glm::ivec4 lightTypes[4];   // 64 bytes (each int padded to 16 bytes in std140)
+        alignas(16) int numLights;  // 16 bytes
+        int _pad[3];                // padding
+        // Total: 272 bytes
     };
 
     class Scene;
@@ -85,19 +148,19 @@ namespace core
         /// <summary>
         /// The intensity/brightness of the light.
         /// </summary>
-        Property<int> intensity{ 1 };
+        Property<float> intensity{ 1 };
         
         /// <summary>
         /// The type of light: 0 = point, 1 = directional, 2 = spot.
         /// </summary>
-        Property<int> lightType{ 0 };
+        Property<LightType> lightType{ LightType::Point };
 
         /// <summary>
         /// Gets the current color value of the light.
         /// </summary>
         /// <returns>The RGBA color vector.</returns>
         glm::vec4 GetColor() const { return color.Get(); }
-
+        
     private:
         /// <summary>
         /// Updates the cached renderer's material color when the light color changes.
@@ -121,4 +184,5 @@ namespace core
         /// </summary>
         std::weak_ptr<Renderer> m_renderer; // Cache renderer reference
     };
+
 } // namespace core
