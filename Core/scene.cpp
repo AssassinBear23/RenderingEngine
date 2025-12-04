@@ -2,11 +2,26 @@
 #include "ObjectSystems/Components/Renderer.h"
 #include "ObjectSystems/GameObject.h"
 #include "Scene.h"
+#include <algorithm>
+#include <glad/glad.h>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_float4x4.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/vector_float3.hpp>
+#include <glm/ext/vector_float4.hpp>
+#include <glm/ext/vector_int4.hpp>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace core
 {
-
-    Scene::Scene(std::string name) { SetName(std::move(name)); }
+    Scene::Scene(std::string name)
+    {
+        SetName(std::move(name));
+        depthShader = Shader("shaders/depth_shader.vert", "shaders/depth_shader.frag");
+    }
 
     void Scene::SetName(std::string name) { m_name = std::move(name); }
     const std::string& Scene::GetName() const { return m_name; }
@@ -42,6 +57,7 @@ namespace core
 
     void Scene::Render(const glm::mat4& view, const glm::mat4& projection)
     {
+        // Setting light data UBO
         LightData lightData = {};
 
         for (size_t i = 0; i < m_lights.size() && i < 4; ++i)
@@ -56,6 +72,8 @@ namespace core
             lightData.directions[i] = glm::vec4(lightGO->transform->forward(), 0.0f);
             lightData.colors[i] = light->GetColor();
             lightData.lightTypes[i] = glm::ivec4(ToInt(light->lightType.Get()), 0, 0, 0);
+
+            CreateShadowMaps(i);
             lightData.numLights++;
         }
 
@@ -63,6 +81,30 @@ namespace core
         glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(LightData), &lightData);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+        RenderFinalScene(view, projection);
+    }
+
+    void Scene::CreateShadowMaps(int lightNumber, int resolution)
+    {
+        glm::mat4 lightProjection, lightView, lightSpaceMatrix;
+
+        float near_plane = 1.0f, far_plane = 25.0f;
+
+        lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+        lightView = glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        lightSpaceMatrix = lightProjection * lightView;
+
+        // render scene from light's point of view
+        depthShader.use();
+        depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+        glViewport(0, 0, resolution, resolution);
+        glBindBuffer(GL_FRAMEBUFFER, depthMapFBOs[lightNumber]);
+    }
+
+    void Scene::RenderFinalScene(const glm::mat4& view, const glm::mat4& projection)
+    {
+        // Rendering all renderers.
         for (const auto& renderer : m_renderers)
         {
             if (!renderer) continue;

@@ -1,11 +1,10 @@
 #pragma once
 #include <glad/glad.h>
 #include <glm/ext/matrix_float4x4.hpp>
-#include <glm/ext/vector_float3.hpp>
-#include <algorithm>
 #include <memory>
 #include <string>
 #include <vector>
+#include "Rendering/shader.h"
 
 namespace core // Forward declaration
 {
@@ -110,6 +109,9 @@ namespace core
             container.erase(std::remove(container.begin(), container.end(), component), container.end());
         }
 
+        void CreateShadowMaps(int lightNumber, int resolution = 1024);
+        void RenderFinalScene(const glm::mat4& view, const glm::mat4& projection);
+
         /// <summary>
         /// Calculate the world matrix for a GameObject.
         /// </summary>
@@ -122,6 +124,7 @@ namespace core
         std::vector<std::shared_ptr<Light>> m_lights;
         GLuint m_uboLights{ 0 };
         std::vector<std::shared_ptr<Renderer>> m_renderers;
+        core::Shader depthShader;
     };
 
 } // namespace core
