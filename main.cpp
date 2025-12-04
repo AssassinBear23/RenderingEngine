@@ -110,7 +110,7 @@ int main()
 {
     glfwInit();
     glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
@@ -210,18 +210,8 @@ int main()
     glGenBuffers(1, &uboLights);
     glBindBuffer(GL_UNIFORM_BUFFER, uboLights);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(core::LightData), nullptr, GL_DYNAMIC_DRAW);
-
-    // Bind to binding point 0
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, uboLights);
-
-    // Link shader programs to the same binding point
-    GLuint lightBlockIndex = glGetUniformBlockIndex(modelShaderProgram, "LightBlock");
-    glUniformBlockBinding(modelShaderProgram, lightBlockIndex, 0);
-
-    lightBlockIndex = glGetUniformBlockIndex(textureShaderProgram, "LightBlock");
-    glUniformBlockBinding(textureShaderProgram, lightBlockIndex, 0);
-
-    glBindBuffer(GL_UNIFORM_BUFFER, 0); // Unbind
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);

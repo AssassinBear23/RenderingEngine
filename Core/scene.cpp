@@ -42,9 +42,7 @@ namespace core
 
     void Scene::Render(const glm::mat4& view, const glm::mat4& projection)
     {
-        // Update UBO with current light data
         LightData lightData = {};
-        lightData.numLights = static_cast<int>(std::min(m_lights.size(), size_t(4)));
 
         for (size_t i = 0; i < m_lights.size() && i < 4; ++i)
         {
@@ -55,26 +53,22 @@ namespace core
             if (!lightGO || !lightGO->transform) continue;
 
             lightData.positions[i] = glm::vec4(lightGO->transform->position, 1.0f);
-            lightData.colors[i] = light->GetColor(); // When you add this to Light component
+            lightData.directions[i] = glm::vec4(lightGO->transform->forward(), 0.0f);
+            lightData.colors[i] = light->GetColor();
+            lightData.lightTypes[i] = glm::ivec4(ToInt(light->lightType.Get()), 0, 0, 0);
+            lightData.numLights++;
         }
 
-        // Upload to GPU
         glBindBuffer(GL_UNIFORM_BUFFER, m_uboLights);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(LightData), &lightData);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-        glm::mat4 identity = glm::mat4(1.0f);
-
         for (const auto& renderer : m_renderers)
         {
             if (!renderer) continue;
-
             auto go = renderer->GetOwner();
+            if (!go || !go->isEnabled || !renderer->isEnabled) continue;
 
-            if (!go || !go->isEnabled || !renderer->isEnabled)
-                continue;
-
-            // Calculate world matrix
             glm::mat4 worldMatrix = CalculateWorldMatrix(go);
             glm::mat4 mvp = projection * view * worldMatrix;
 

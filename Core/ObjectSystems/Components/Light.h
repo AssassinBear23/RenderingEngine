@@ -61,14 +61,22 @@ namespace core
             default:                     return "Unknown";
         }
     }
+    
+    // Helper function to convert enum to int
+    inline const int ToInt(LightType type)
+    {
+        return static_cast<int>(type);
+    }
 
     struct LightData
     {
-        glm::vec4 positions[4];     // xyz = position
-        glm::vec4 colors[4];        // rgba
-        //float intensity;          // TODO: Add falloff based on intensity
-        int numLights;              // Number of active lights
-        float padding[3];           // Align to total of 128 bytes
+        glm::vec4 positions[4];     // 64 bytes (use vec4 for vec3 data, std140 pads anyway)
+        glm::vec4 directions[4];    // 64 bytes
+        glm::vec4 colors[4];        // 64 bytes
+        glm::ivec4 lightTypes[4];   // 64 bytes (each int padded to 16 bytes in std140)
+        alignas(16) int numLights;  // 16 bytes
+        int _pad[3];                // padding
+        // Total: 272 bytes
     };
 
     class Scene;
