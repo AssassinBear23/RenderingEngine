@@ -109,8 +109,9 @@ namespace core
             container.erase(std::remove(container.begin(), container.end(), component), container.end());
         }
 
-        void CreateShadowMaps(int lightNumber, int resolution = 1024);
+        void RenderShadowMap(int lightIndex);
         void RenderFinalScene(const glm::mat4& view, const glm::mat4& projection);
+        void GenerateDepthMaps(int numLights, int width_resolution, int height_resolution);
 
         /// <summary>
         /// Calculate the world matrix for a GameObject.
@@ -124,7 +125,12 @@ namespace core
         std::vector<std::shared_ptr<Light>> m_lights;
         GLuint m_uboLights{ 0 };
         std::vector<std::shared_ptr<Renderer>> m_renderers;
+        std::vector<glm::mat4> m_lightSpaceMatrices;
         core::Shader depthShader;
+        std::vector<unsigned int> m_depthMapFBOs;
+        std::vector<unsigned int> m_depthMaps;
+        const int SHADOW_WIDTH = 1024;
+        const int SHADOW_HEIGHT = 1024;
     };
 
 } // namespace core
