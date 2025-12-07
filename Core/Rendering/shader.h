@@ -252,7 +252,7 @@ namespace core
             }
         }
 
-        std::string ProcessShaderIncludes(const std::string& source, const std::string& basePath = "assets/shaders/shaderlibrary/")
+        std::string ProcessShaderIncludes(const std::string& source, const std::string& basePath = "assets/shaders/shaderLibrary/")
         {
             std::string result = source;
             std::regex includePattern(R"(#include\s+\"([^\"]+)\")");

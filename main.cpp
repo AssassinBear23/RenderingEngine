@@ -98,7 +98,7 @@ int main()
         auto rockGO = scene->CreateObject("Rock");
 
         core::Model rockModel = core::AssimpLoader::loadModel("assets/models/rockModel.fbx");
-        auto rockMaterial = std::make_shared<core::Material>(&litSurfaceShader.ID);
+        auto rockMaterial = std::make_shared<core::Material>(litSurfaceShader.ID);
 
         auto rockRenderer = rockGO->AddComponent<core::Renderer>();
         auto rockTexture = std::make_shared<core::Texture>("assets/textures/rockTexture.jpeg");
@@ -118,7 +118,7 @@ int main()
 
         // Load Suzanne model and create material
         core::Model suzanneModel = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
-        auto suzanneMaterial = std::make_shared<core::Material>(&litSurfaceShader.ID);
+        auto suzanneMaterial = std::make_shared<core::Material>(litSurfaceShader.ID);
         suzanneMaterial->SetBool("useNormalMap", false);
 
         auto suzanneRenderer = suzanneGO->AddComponent<core::Renderer>();
@@ -134,7 +134,7 @@ int main()
         // Create quad mesh and material with texture
         core::Mesh quadMesh = core::Mesh::GenerateQuad();
         auto quadTexture = std::make_shared<core::Texture>("assets/textures/CMGaTo_crop.png");
-        auto quadMaterial = std::make_shared<core::Material>(&textureShader.ID);
+        auto quadMaterial = std::make_shared<core::Material>(textureShader.ID);
         quadMaterial->SetTexture("text", quadTexture, 0);
 
         auto quadRenderer = quadGO->AddComponent<core::Renderer>();
@@ -145,7 +145,7 @@ int main()
 
         // Load model and create material with lightbulb shader
         core::Model lightModel = core::AssimpLoader::loadModel("assets/models/lightBulbModel.obj");
-        auto lightMaterial = std::make_shared<core::Material>(&lightBulbShader.ID);
+        auto lightMaterial = std::make_shared<core::Material>(lightBulbShader.ID);
 
         // Add Renderer FIRST (before Light)
         auto lightRenderer = lightGO->AddComponent<core::Renderer>();
@@ -168,7 +168,7 @@ int main()
 
         // Load Suzanne model and create material
         core::Model suzanneModel = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
-        auto suzanneMaterial = std::make_shared<core::Material>(&litSurfaceShader.ID);
+        auto suzanneMaterial = std::make_shared<core::Material>(litSurfaceShader.ID);
 
         auto suzanneRenderer = suzanneGO->AddComponent<core::Renderer>();
         suzanneRenderer->SetMeshes(suzanneModel.GetMeshes());
@@ -180,7 +180,7 @@ int main()
 
         // Load Suzanne model and create material
         core::Model suzanneModel2 = core::AssimpLoader::loadModel("assets/models/nonormalmonkey.obj");
-        auto suzanneMaterial2 = std::make_shared<core::Material>(&litSurfaceShader.ID);
+        auto suzanneMaterial2 = std::make_shared<core::Material>(litSurfaceShader.ID);
 
         auto suzanneRenderer2 = suzanneGO2->AddComponent<core::Renderer>();
         suzanneRenderer2->SetMeshes(suzanneModel2.GetMeshes());
@@ -190,7 +190,7 @@ int main()
 
         // Load model and create material with lightbulb shader
         core::Model lightModel = core::AssimpLoader::loadModel("assets/models/lightBulbModel.obj");
-        auto lightMaterial = std::make_shared<core::Material>(&lightBulbShader.ID);
+        auto lightMaterial = std::make_shared<core::Material>(lightBulbShader.ID);
 
         // Add Renderer FIRST (before Light)
         auto lightRenderer = lightGO->AddComponent<core::Renderer>();
@@ -207,7 +207,7 @@ int main()
 
         // Load model and create material with lightbulb shader
         core::Model lightModel2 = core::AssimpLoader::loadModel("assets/models/lightBulbModel.obj");
-        auto lightMaterial2 = std::make_shared<core::Material>(&lightBulbShader.ID);
+        auto lightMaterial2 = std::make_shared<core::Material>(lightBulbShader.ID);
 
         // Add Renderer FIRST (before Light)
         auto lightRenderer2 = lightGO2->AddComponent<core::Renderer>();
