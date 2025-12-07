@@ -10,8 +10,8 @@ namespace core
 		});
 	}
 
-	void Object::SetName(std::string n) { m_name = std::move(n); }
-	const std::string& Object::GetName() const { return m_name; }
+	void Object::SetName(std::string n) { name = std::move(n); }
+	const std::string& Object::GetName() const { return name; }
 
 	void Object::OnEnabledChanged(bool newValue)
 	{
@@ -43,7 +43,7 @@ namespace core
 
 	void Object::Serialize(nlohmann::json& out) const
 	{
-		out["name"] = m_name;
+		out["name"] = name;
 		out["enabled"] = isEnabled.Get();
 	}
 

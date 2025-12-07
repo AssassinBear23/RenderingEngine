@@ -4,10 +4,12 @@ in vec3 fPos;
 in vec3 fNor;
 in vec2 uv;
 in mat3 TBN;
+in vec4 FragPosLightSpace;
 
 uniform sampler2D albedoMap;
 uniform sampler2D aoMap;
 uniform sampler2D normalMap;
+uniform sampler2D shadowMap;
 uniform bool useNormalMap;
 
 #include "lighting.glsl"

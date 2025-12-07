@@ -7,11 +7,13 @@ layout (location = 4) in vec3 aBitangent;
 
 uniform mat4 mvpMatrix;
 uniform mat4 modelMatrix;
+uniform mat4 lightSpaceMatrix;
 
 out vec3 fPos;
 out vec3 fNor;
 out vec2 uv;
 out mat3 TBN;
+out vec4 FragPosLightSpace;
 
 void main()
 {
@@ -28,6 +30,8 @@ void main()
    // Constuct TBN matrix for transforming tangent space normals to world space
    TBN = mat3(T, B, N);
    fNor = N;
+
+   FragPosLightSpace = lightSpaceMatrix * worldPos;
 
    uv = aUv;
    gl_Position = mvpMatrix * vec4(aPos, 1.0);

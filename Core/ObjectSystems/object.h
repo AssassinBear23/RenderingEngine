@@ -57,6 +57,7 @@ public:
 
     virtual void Serialize(nlohmann::json& out) const;
     virtual void Deserialize(const nlohmann::json& in);
+    std::string name{};
 
 protected:
     /// <summary>
@@ -77,7 +78,6 @@ protected:
 
 
 private:
-    std::string m_name{};
     bool m_destroyed{false};
 
 };
