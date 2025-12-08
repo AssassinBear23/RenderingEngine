@@ -42,6 +42,7 @@ add_executable(FinalEngine
   "core/material.cpp"
   "core/scene.cpp"
   "core/camera.cpp"
+  "core/frameBuffer.cpp"
   "core/sceneManager.cpp"
   "core/rendering/mesh.cpp"
   "core/Rendering/shader.h"

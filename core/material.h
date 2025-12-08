@@ -43,7 +43,7 @@ namespace core
         struct TextureData
         {
             std::shared_ptr<Texture> texture;
-            int slot;
+            int slot = 0;
         };
 
         std::unordered_map<std::string, TextureData> m_textures;

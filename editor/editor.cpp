@@ -130,12 +130,12 @@ namespace editor
     /// 
     /// </summary>
     /// <returns></returns>
-    int    Editor::getViewportWidth() const { return m_viewport ? m_viewport->width() : 0; }
+    int    Editor::getViewportWidth() const { return m_viewport ? m_viewport->GetWidth() : 0; }
     /// <summary>
     /// 
     /// </summary>
     /// <returns></returns>
-    int    Editor::getViewportHeight() const { return m_viewport ? m_viewport->height() : 0; }
+    int    Editor::getViewportHeight() const { return m_viewport ? m_viewport->GetHeight() : 0; }
     /// <summary>
     /// 
     /// </summary>
