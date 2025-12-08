@@ -9,7 +9,6 @@ in vec4 FragPosLightSpace;
 uniform sampler2D albedoMap;
 uniform sampler2D aoMap;
 uniform sampler2D normalMap;
-uniform sampler2D shadowMap;
 uniform bool useNormalMap;
 
 #include "lighting.glsl"
