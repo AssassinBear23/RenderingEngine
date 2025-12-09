@@ -2,25 +2,31 @@
 #include "../frameBuffer.h"
 #include "postProcessingEffectBase.h"
 
-namespace core::postProcessing
+namespace core
 {
-    PostProcessingEffectBase::PostProcessingEffectBase(const std::string& name, std::shared_ptr<core::Material> material)
-        : m_name(name), m_material(material) { m_enabled = true; }
-
-    void PostProcessingEffectBase::Apply(GLuint inputTexture, core::FrameBuffer& outputFBO, const int width, const int height)
+    namespace postProcessing
     {
-        outputFBO.Bind();
+        PostProcessingEffectBase::PostProcessingEffectBase(const std::string& name, std::shared_ptr<core::Material> material)
+            : m_name(name), m_material(material)
+        {}
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glViewport(0, 0, width, height);
-
-        if (m_material)
+        void PostProcessingEffectBase::Apply(GLuint inputTexture, core::FrameBuffer& outputFBO, const int width, const int height)
         {
-            m_material->Use();
+            outputFBO.Bind();
 
-            // Bind input texture to the material
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, inputTexture);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glViewport(0, 0, width, height);
+
+            if (m_material)
+            {
+                m_material->Use();
+
+                // Bind input texture to the material
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, inputTexture);
+
+                m_material->SetInt("inputTexture", inputTexture);
+            }
         }
-    }
-} // namespace core::postProcessing
+    } // namespace postProcessing
+} // namespace core

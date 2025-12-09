@@ -39,7 +39,7 @@ namespace core
         glGenFramebuffers(1, &m_fboID);
         glBindFramebuffer(GL_FRAMEBUFFER, m_fboID);
 
-        switch (m_specs.attachementType)
+        switch (m_specs.attachmentType)
         {
         case AttachmentType::COLOR_ONLY:
             AttachColor(w, h);

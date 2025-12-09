@@ -3,8 +3,6 @@
 
 namespace editor
 {
-    ViewportPanel::~ViewportPanel() { m_frameBuffer.~FrameBuffer(); }
-
     ViewportPanel::ViewportPanel(Editor& editor)
         : Panel("Viewport", true)
     {

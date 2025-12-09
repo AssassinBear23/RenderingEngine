@@ -25,7 +25,7 @@ namespace core
     {
         unsigned int width = 0;     /// Width of the framebuffer in pixels
         unsigned int height = 0;    /// Height of the framebuffer in pixels
-        AttachmentType attachementType = AttachmentType::COLOR_DEPTH;   /// Type of attachments to create
+        AttachmentType attachmentType = AttachmentType::COLOR_DEPTH;   /// Type of attachments to create
         GLenum colorFormat = GL_RGBA;               /// Internal format of color attachment (e.g., GL_RGBA, GL_RGB)
         GLenum depthFormat = GL_DEPTH_COMPONENT;    /// Internal format of depth attachment (e.g., GL_DEPTH_COMPONENT, GL_DEPTH24_STENCIL8)
     };

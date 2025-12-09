@@ -29,6 +29,22 @@ namespace core
             PostProcessingEffectBase(const std::string& name, std::shared_ptr<core::Material> material);
             
             /// <summary>
+            /// Applies the post-processing effect to the input texture and renders the result to the output framebuffer.
+            /// Override this method in derived classes to implement custom effect behavior.
+            /// </summary>
+            /// <param name="inputTexture">The OpenGL texture ID of the input texture to process.</param>
+            /// <param name="outputFBO">The framebuffer object to render the processed result into.</param>
+            /// <param name="width">The width of the rendering viewport in pixels.</param>
+            /// <param name="height">The height of the rendering viewport in pixels.</param>
+            virtual void Apply(GLuint inputTexture, core::FrameBuffer& outputFBO, const int width, const int height);
+            
+            /// <summary>
+            /// Draws the GUI elements for this post-processing effect.
+            /// Override this method in derived classes to provide custom ImGui controls for effect parameters.
+            /// </summary>
+            virtual void DrawGui() = 0;
+
+            /// <summary>
             /// Gets whether this post-processing effect is currently enabled.
             /// </summary>
             /// <returns>True if the effect is enabled, false otherwise.</returns>
@@ -53,22 +69,6 @@ namespace core
             /// <returns>A constant reference to the effect's name string.</returns>
             const std::string& GetName() const { return m_name; }
 #pragma endregion GetterMethods
-        protected:
-            /// <summary>
-            /// Applies the post-processing effect to the input texture and renders the result to the output framebuffer.
-            /// Override this method in derived classes to implement custom effect behavior.
-            /// </summary>
-            /// <param name="inputTexture">The OpenGL texture ID of the input texture to process.</param>
-            /// <param name="outputFBO">The framebuffer object to render the processed result into.</param>
-            /// <param name="width">The width of the rendering viewport in pixels.</param>
-            /// <param name="height">The height of the rendering viewport in pixels.</param>
-            virtual void Apply(GLuint inputTexture, core::FrameBuffer& outputFBO, const int width, const int height);
-            
-            /// <summary>
-            /// Draws the GUI elements for this post-processing effect.
-            /// Override this method in derived classes to provide custom ImGui controls for effect parameters.
-            /// </summary>
-            virtual void DrawGui();
         private:
             /// <summary>
             /// Flag indicating whether this effect is currently enabled.

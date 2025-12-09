@@ -10,7 +10,7 @@ namespace editor
     {
     public:
         explicit ViewportPanel(Editor& editor);
-        ~ViewportPanel();
+        ~ViewportPanel() = default;
 
         void draw(EditorContext& ctx) override;
 
