@@ -47,6 +47,7 @@ add_executable(FinalEngine
   "core/Rendering/shader.h"
   "core/rendering/texture.cpp"
   "core/rendering/frameBuffer.cpp"
+  "core/rendering/postProcessing/postProcessingEffectBase.cpp"
   "core/objectSystems/components/renderer.cpp"
   "core/objectSystems/object.cpp"
   "core/objectSystems/component.cpp"
