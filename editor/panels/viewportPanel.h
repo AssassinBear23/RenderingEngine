@@ -1,6 +1,7 @@
 #pragma once
 #include "../editor.h"
 #include "../panel.h"
+#include <core/rendering/frameBuffer.h>
 #include <glad/glad.h>
 
 namespace editor
@@ -9,24 +10,18 @@ namespace editor
     {
     public:
         explicit ViewportPanel(Editor& editor);
-        ~ViewportPanel();
+        ~ViewportPanel() = default;
 
         void draw(EditorContext& ctx) override;
 
         // Expose render target to app
-        GLuint framebuffer() const { return m_fbo; }
-        int    width() const { return m_vpWidth; }
-        int    height() const { return m_vpHeight; }
+        GLuint framebuffer() const { return m_frameBuffer.GetFBO(); }
+        unsigned int GetWidth() const { return m_frameBuffer.GetWidth(); }
+        unsigned int GetHeight() const { return m_frameBuffer.GetHeight(); }
         bool   isFocused() const { return m_focused; }
 
     private:
-        void ensureFboSized(int w, int h);
-        void destroyFbo();
-
-        GLuint m_fbo = 0;
-        GLuint m_colorTex = 0;
-        GLuint m_depthRb = 0;
-        int m_vpWidth = 0, m_vpHeight = 0;
+        core::FrameBuffer m_frameBuffer{ {800, 600, core::AttachmentType::COLOR_DEPTH}};
         bool m_focused = false;
     };
 }

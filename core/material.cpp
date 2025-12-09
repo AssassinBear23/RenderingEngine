@@ -29,6 +29,11 @@ namespace core
             if (loc != -1) glUniform1i(loc, value);
         }
 
+        for (const auto& [name, value] : m_bools) {
+            GLint loc = glGetUniformLocation(m_shaderProgram, name.c_str());
+            if (loc != -1) glUniform1i(loc, value);
+        }
+
         for (const auto& [name, value] : m_vec3s) {
             GLint loc = glGetUniformLocation(m_shaderProgram, name.c_str());
             if (loc != -1) glUniform3fv(loc, 1, glm::value_ptr(value));
@@ -42,11 +47,6 @@ namespace core
         for (const auto& [name, value] : m_mat4s) {
             GLint loc = glGetUniformLocation(m_shaderProgram, name.c_str());
             if (loc != -1) glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
-        }
-
-        for (const auto& [name, value] : m_bools) {
-            GLint loc = glGetUniformLocation(m_shaderProgram, name.c_str());
-            if (loc != -1) glUniform1i(loc, value);
         }
     }
 }
