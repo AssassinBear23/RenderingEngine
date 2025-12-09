@@ -1,7 +1,7 @@
 #pragma once
 #include "../editor.h"
 #include "../panel.h"
-#include <core/frameBuffer.h>
+#include <core/rendering/frameBuffer.h>
 #include <glad/glad.h>
 
 namespace editor
