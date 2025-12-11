@@ -120,6 +120,19 @@ namespace core
         /// <returns>True if the framebuffer is complete and ready for use, false otherwise.</returns>
         bool IsValid() const { return m_isValid; }
         
+        /// <summary>
+        /// Binds this framebuffer and clears its color and depth attachments.
+        /// Sets the viewport to the framebuffer's dimensions.
+        /// </summary>
+        /// <param name="width">The width of the framebuffer.</param>
+        /// <param name="height">The height of the framebuffer.</param>
+        void BindAndClear(int width, int height) const
+        {
+            Bind();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glViewport(0, 0, width, height);
+        }
+        
     private:
         /// <summary>
         /// Creates the framebuffer object and its attachments based on specifications.

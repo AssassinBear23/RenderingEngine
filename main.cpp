@@ -92,6 +92,8 @@ int main()
     auto sceneManager = std::make_shared<core::SceneManager>();
     Editor::editorCtx.sceneManager = sceneManager;
 
+    auto postProcessingManager = std::make_shared<core::postProcessing::PostProcessingManager>();
+
     // Create Scene 1
     sceneManager->RegisterScene("Scene 1", [&modelShader, &textureShader, &lightBulbShader, &litSurfaceShader](auto scene) {
         // Create Suzanne GameObject
