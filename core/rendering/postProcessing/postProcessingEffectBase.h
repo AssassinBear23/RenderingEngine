@@ -4,14 +4,11 @@
 #include <memory>
 #include <string>
 
-namespace core // Forward declaration
+namespace core
 {
     class Material;
     class FrameBuffer;
-}
 
-namespace core
-{
     namespace postProcessing
     {
         /// <summary>
@@ -28,6 +25,8 @@ namespace core
             /// <param name="material">The material containing the shader and properties used for this effect.</param>
             PostProcessingEffectBase(const std::string& name, std::shared_ptr<core::Material> material);
             
+            virtual int GetPassCount() const { return 1; }
+
             /// <summary>
             /// Applies the post-processing effect to the input texture and renders the result to the output framebuffer.
             /// Override this method in derived classes to implement custom effect behavior.
@@ -36,7 +35,7 @@ namespace core
             /// <param name="outputFBO">The framebuffer object to render the processed result into.</param>
             /// <param name="width">The width of the rendering viewport in pixels.</param>
             /// <param name="height">The height of the rendering viewport in pixels.</param>
-            virtual void Apply(GLuint inputTexture, core::FrameBuffer& outputFBO, const int width, const int height);
+            virtual void Apply(GLuint inputTexture, core::FrameBuffer& outputFBO, const int width, const int height, unsigned int passIndex = 0);
             
             /// <summary>
             /// Draws the GUI elements for this post-processing effect.

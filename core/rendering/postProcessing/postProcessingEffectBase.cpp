@@ -10,7 +10,7 @@ namespace core
             : m_name(name), m_material(material)
         {}
 
-        void PostProcessingEffectBase::Apply(GLuint inputTexture, core::FrameBuffer& outputFBO, const int width, const int height)
+        void PostProcessingEffectBase::Apply(GLuint inputTexture, core::FrameBuffer& outputFBO, const int width, const int height, unsigned int passIndex)
         {
             outputFBO.Bind();
 

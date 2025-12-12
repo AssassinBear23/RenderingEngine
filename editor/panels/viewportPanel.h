@@ -15,7 +15,8 @@ namespace editor
         void draw(EditorContext& ctx) override;
 
         // Expose render target to app
-        GLuint framebuffer() const { return m_frameBuffer.GetFBO(); }
+        core::FrameBuffer* GetFrameBuffer() { return &m_frameBuffer; }
+        const core::FrameBuffer* GetFrameBuffer() const { return &m_frameBuffer; }
         unsigned int GetWidth() const { return m_frameBuffer.GetWidth(); }
         unsigned int GetHeight() const { return m_frameBuffer.GetHeight(); }
         bool   isFocused() const { return m_focused; }
