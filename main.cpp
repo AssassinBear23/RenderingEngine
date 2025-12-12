@@ -65,7 +65,7 @@ int main()
 
     auto postProcessingManager = std::make_shared<core::postProcessing::PostProcessingManager>();
     auto bloomEffect = std::make_shared<core::postProcessing::BloomEffect>();
-    bloomEffect->isEnabled = true;
+    bloomEffect->SetEnabled(true);
     postProcessingManager->AddEffect(bloomEffect);
 
     Editor editor;

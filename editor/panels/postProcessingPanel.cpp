@@ -30,7 +30,7 @@ namespace editor
         ImGui::Separator();
 
         auto effects = m_postProcessingManager->GetEffects();
-        
+
         if (effects.empty())
         {
             ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "No effects in the stack.");
@@ -40,16 +40,22 @@ namespace editor
             for (auto& effect : effects)
             {
                 ImGui::PushID(effect.get());
-                
-                ImGui::Checkbox(effect->GetName().c_str(), &effect->isEnabled);
-                
-                if (effect->isEnabled)
+
+                bool enabled = effect->IsEnabled();
+                if (ImGui::Checkbox(effect->GetName().c_str(), &enabled))
+                {
+                    printf("Changing %s state to %s\n", effect->GetName().c_str(), enabled ? "enabled" : "disabled");
+                    effect->SetEnabled(enabled);
+                }
+
+
+                if (enabled)
                 {
                     ImGui::Indent();
                     effect->DrawGui();
                     ImGui::Unindent();
                 }
-                
+
                 ImGui::Separator();
                 ImGui::PopID();
             }

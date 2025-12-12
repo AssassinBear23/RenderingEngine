@@ -18,9 +18,16 @@ namespace core
 
             FrameBuffer* currentOutput = &tempFBO_1;
             FrameBuffer* nextOutput = &tempFBO_2;
+
+            unsigned int skippedEffects = 0;
+
             for (auto& effect : m_effects)
             {
-                if (!effect->isEnabled) continue; // Skip disabled effects
+                if (!effect->IsEnabled())
+                {
+                    skippedEffects++; // Skip disabled effects
+                    continue;
+                }
 
                 int passCount = effect->GetPassCount();
 
@@ -34,6 +41,17 @@ namespace core
                     currentInput = targetFBO.GetColorAttachment();
                     std::swap(currentOutput, nextOutput); // Ping-Pong the buffers
                 }
+            }
+
+            //printf("[POSTPROCESSMANAGER] Skipped %u/%zu effects, %s.\n", skippedEffects, m_effects.size(), skippedEffects == m_effects.size() ? "rendering input directly to output" : "rendered as normal");
+            
+            if (skippedEffects > 0 || skippedEffects == m_effects.size())
+            {
+                // If all effects were skipped, copy input to output directly using blit
+                glBindFramebuffer(GL_READ_FRAMEBUFFER, inputBuffer.GetFBO());
+                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, outputBuffer.GetFBO());
+                glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
             }
         }
 
