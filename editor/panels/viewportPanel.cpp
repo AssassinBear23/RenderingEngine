@@ -1,4 +1,5 @@
 #include "ViewportPanel.h"
+#include <editor/editor.h>
 #include <iostream>
 
 namespace editor

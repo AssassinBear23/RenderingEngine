@@ -1,5 +1,6 @@
 #pragma once
 
+#include <glad/glad.h>
 #include <memory>
 #include <vector>
 
@@ -17,10 +18,12 @@ namespace core
             PostProcessingManager() = default;
             ~PostProcessingManager() = default;
 
-            void ProcessStack(core::FrameBuffer& inputBuffer, core::FrameBuffer& outputBuffer, const unsigned int width, const unsigned int height);
+            void ProcessStack(FrameBuffer& inputBuffer, core::FrameBuffer& outputBuffer, const unsigned int width, const unsigned int height);
 
             bool AddEffect(const std::shared_ptr<PostProcessingEffectBase> effect);
             bool RemoveEffect(const std::shared_ptr<PostProcessingEffectBase> effect);
+
+            std::vector<std::shared_ptr<PostProcessingEffectBase>> GetEffects() const { return m_effects; }
 
         private:
             void RenderQuad(const unsigned int width, const unsigned int height);

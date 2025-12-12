@@ -61,7 +61,8 @@ add_executable(FinalEngine
   "editor/panels/viewportPanel.cpp"
   "editor/panels/heirarchyPanel.cpp"
   "editor/panels/inspectorPanel.cpp"
-  "editor/panels/transformPanel.cpp"
+  "editor/panels/postProcessingPanel.cpp"
+  
 )
 
 add_custom_command(

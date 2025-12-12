@@ -1,6 +1,9 @@
-#include "postProcessingManager.h"
-#include "postProcessingEffectBase.h"
 #include "../frameBuffer.h"
+#include "postProcessingEffectBase.h"
+#include "postProcessingManager.h"
+#include <algorithm>
+#include <memory>
+#include <utility>
 
 namespace core
 {
@@ -17,7 +20,7 @@ namespace core
             FrameBuffer* nextOutput = &tempFBO_2;
             for (auto& effect : m_effects)
             {
-                if (!effect->IsEnabled()) continue; // Skip disabled effects
+                if (!effect->isEnabled) continue; // Skip disabled effects
 
                 int passCount = effect->GetPassCount();
 
