@@ -3,6 +3,7 @@
 #include "../gameObject.h"
 #include "Light.h"
 #include "Renderer.h"
+#include <imgui.h>
 
 namespace core
 {

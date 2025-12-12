@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Component.h"
-#include "../property.h"
+#include "../../property.h"
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <memory>

@@ -2,8 +2,6 @@
 #include "Object.h"
 #include <memory>
 #include <string>
-#include "property.h"
-#include <ImGui.h>
 
 namespace core {
 

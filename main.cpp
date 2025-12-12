@@ -4,15 +4,20 @@
 #include "core/model.h"
 #include "core/objectSystems/components/Light.h"
 #include "core/objectSystems/components/Renderer.h"
+#include "core/rendering/frameBuffer.h"
 #include "core/rendering/mesh.h"
 #include "core/rendering/texture.h"
 #include "core/scene.h"
 #include "core/sceneManager.h"
 #include "editor/Editor.h"
+#include <core/rendering/postProcessing/effects/bloomEffect.h>
+#include <core/rendering/postProcessing/postProcessingManager.h>
+#include <core/Rendering/shader.h>
 #include <cstdio>
 #include <editor/inputManager.h>
 #include <editor/panels/hierarchyPanel.h>
 #include <editor/panels/inspectorPanel.h>
+#include <editor/panels/postProcessingPanel.h>
 #include <editor/panels/viewportPanel.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -21,7 +26,6 @@
 #include <glm/ext/vector_float4.hpp>
 #include <memory>
 #include <unordered_map>
-#include <core/Rendering/shader.h>
 using namespace editor;
 
 int g_width = 800;
@@ -59,12 +63,18 @@ int main()
         return -1;
     }
 
+    auto postProcessingManager = std::make_shared<core::postProcessing::PostProcessingManager>();
+    auto bloomEffect = std::make_shared<core::postProcessing::BloomEffect>();
+    bloomEffect->SetEnabled(true);
+    postProcessingManager->AddEffect(bloomEffect);
+
     Editor editor;
     editor.init(window, "#version 400");
 
     editor.addPanel<ViewportPanel>(editor);
     editor.addPanel<HierarchyPanel>();
     editor.addPanel<InspectorPanel>();
+    editor.addPanel<PostProcessingPanel>(postProcessingManager.get());
 
     InputManager inputManager;
     inputManager.Initialize(window);
@@ -92,6 +102,7 @@ int main()
     auto sceneManager = std::make_shared<core::SceneManager>();
     Editor::editorCtx.sceneManager = sceneManager;
 
+
     // Create Scene 1
     sceneManager->RegisterScene("Scene 1", [&modelShader, &textureShader, &lightBulbShader, &litSurfaceShader](auto scene) {
         // Create Suzanne GameObject
@@ -113,7 +124,7 @@ int main()
 
         rockGO->transform->rotation = glm::vec3(-90, 0, 0);
         rockGO->transform->scale = glm::vec3(0.3f, 0.3f, 0.3f);
-        
+
         auto suzanneGO = scene->CreateObject("Suzanne");
 
         // Load Suzanne model and create material
@@ -159,7 +170,7 @@ int main()
         lightComp->color = glm::vec4(1.0f, 0.8f, 0.2f, 1.0f); // Orange color
 
         return scene;
-        });
+    });
 
     // Create Scene 2
     sceneManager->RegisterScene("Scene 2", [&modelShader, &litSurfaceShader, &lightBulbShader](auto scene) {
@@ -221,7 +232,7 @@ int main()
         lightComp2->color = glm::vec4(0.2f, 0.8f, 1.0f, 1.0f); // Orange color
 
         return scene;
-        });
+    });
 
     sceneManager->LoadScene("Scene 1", uboLights);
 
@@ -242,17 +253,20 @@ int main()
         editor.draw();
 
         auto currentScene = sceneManager->GetCurrentScene();
-
-        GLuint fb = editor.framebuffer();
+        
         int vw = editor.getViewportWidth();
         int vh = editor.getViewportHeight();
-        if (vw <= 0 || vh <= 0 || editor.framebuffer() == 0)
+
+        core::FrameBuffer* viewportFramebuffer = editor.GetFrameBuffer();
+        core::FrameBuffer sceneRender(core::FrameBufferSpecifications{
+                    static_cast<unsigned int>(vw),
+                    static_cast<unsigned int>(vh),
+                    core::AttachmentType::COLOR_DEPTH
+                                    });
+
+        if (vw > 0 && vh > 0)
         {
-            // Skip 3D rendering this frame
-        }
-        else
-        {
-            glBindFramebuffer(GL_FRAMEBUFFER, fb);
+            sceneRender.Bind();
             glViewport(0, 0, vw, vh);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -269,7 +283,20 @@ int main()
             if (currentScene)
                 currentScene->Render(view, projection);
 
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            // Apply post-processing if effects are registered
+            if (postProcessingManager)
+            {
+                // Process back to viewport
+                postProcessingManager->ProcessStack(
+                    sceneRender,
+                    *viewportFramebuffer,
+                    static_cast<unsigned int>(vw),
+                    static_cast<unsigned int>(vh));
+                
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            }
+
+            sceneRender.Unbind();
         }
 
         editor.endFrame();

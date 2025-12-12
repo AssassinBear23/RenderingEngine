@@ -2,7 +2,7 @@
 #include <memory>
 #include <string>
 #include "nlohmann/json.hpp"
-#include "property.h"
+#include "../property.h"
 
 namespace core {
 /// <summary>

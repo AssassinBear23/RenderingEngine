@@ -44,7 +44,7 @@ namespace core
         /// </summary>
         /// <param name="specs">Configuration parameters for the framebuffer</param>
         explicit FrameBuffer(const FrameBufferSpecifications& specs);
-        
+
         /// <summary>
         /// Destroys the framebuffer and releases all associated OpenGL resources.
         /// </summary>
@@ -54,13 +54,36 @@ namespace core
         /// Binds this framebuffer as the current render target.
         /// All subsequent rendering operations will be directed to this framebuffer's attachments.
         /// </summary>
-        void Bind() const;
+        void Bind() const { glBindFramebuffer(GL_FRAMEBUFFER, m_fboID); }
         
+        /// <summary>
+        /// Binds this framebuffer and clears its color and depth attachments.
+        /// Sets the viewport to the framebuffer's dimensions.
+        /// </summary>
+        /// <param name="width">The width of the framebuffer.</param>
+        /// <param name="height">The height of the framebuffer.</param>
+        void BindAndClear(int width, int height) const
+        {
+            Bind();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glViewport(0, 0, width, height);
+        }
+
+        /// <summary>
+        /// Binds this framebuffer object for read operations.
+        /// </summary>
+        void BindRead() const { glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fboID); }
+
+        /// <summary>
+        /// Binds this framebuffer object for draw operations.
+        /// </summary>
+        void BindDraw() const { glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fboID); }
+
         /// <summary>
         /// Unbinds this framebuffer, restoring the default framebuffer (typically the screen) as the render target.
         /// </summary>
-        void Unbind() const;
-        
+        void Unbind() const { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+
         /// <summary>
         /// Resizes the framebuffer and recreates all attachments with the new dimensions.
         /// This will invalidate existing texture attachments and create new ones.
@@ -68,50 +91,49 @@ namespace core
         /// <param name="width">The new width of the framebuffer in pixels.</param>
         /// <param name="height">The new height of the framebuffer in pixels.</param>
         void Resize(const int width, const int height);
-        
+
 #pragma region GetterMethods
         /// <summary>
         /// Gets the OpenGL texture ID for the color attachment.
         /// </summary>
         /// <returns>The color texture ID, or 0 if no color attachment exists.</returns>
         GLuint GetColorAttachment() const { return m_colorTexture; }
-        
+
         /// <summary>
         /// Gets the OpenGL texture ID for the depth attachment.
         /// </summary>
         /// <returns>The depth texture ID, or 0 if depth is stored in a renderbuffer.</returns>
         GLuint GetDepthAttachment() const { return m_depthTexture; }
-        
+
         /// <summary>
         /// Gets the OpenGL renderbuffer ID for the depth attachment.
         /// </summary>
         /// <returns>The depth renderbuffer ID, or 0 if depth is stored in a texture.</returns>
         GLuint GetDepthRenderbuffer() const { return m_depthRenderbuffer; }
-        
+
         /// <summary>
         /// Gets the OpenGL framebuffer object ID.
         /// </summary>
         /// <returns>The framebuffer object ID.</returns>
         GLuint GetFBO() const { return m_fboID; }
-        
+
         /// <summary>
         /// Gets the current width of the framebuffer.
         /// </summary>
         /// <returns>The width in pixels.</returns>
         unsigned int GetWidth() const { return m_specs.width; }
-        
+
         /// <summary>
         /// Gets the current height of the framebuffer.
         /// </summary>
         /// <returns>The height in pixels.</returns>
         unsigned int GetHeight() const { return m_specs.height; }
-        
+
         /// <summary>
         /// Gets the complete specification structure of this framebuffer.
         /// </summary>
         /// <returns>A constant reference to the framebuffer specifications.</returns>
         const FrameBufferSpecifications& GetSpecifications() const { return m_specs; }
-#pragma endregion GetterMethods
 
         /// <summary>
         /// Checks if the framebuffer is valid and complete.
@@ -119,7 +141,8 @@ namespace core
         /// </summary>
         /// <returns>True if the framebuffer is complete and ready for use, false otherwise.</returns>
         bool IsValid() const { return m_isValid; }
-        
+#pragma endregion GetterMethods
+
     private:
         /// <summary>
         /// Creates the framebuffer object and its attachments based on specifications.
@@ -127,34 +150,34 @@ namespace core
         /// <param name="w">Width of the framebuffer in pixels.</param>
         /// <param name="h">Height of the framebuffer in pixels.</param>
         void Create(const int w, const int h);
-        
+
         /// <summary>
         /// Destroys all OpenGL resources associated with this framebuffer.
         /// Deletes the FBO and all texture/renderbuffer attachments.
         /// </summary>
         void Destroy();
-        
+
         /// <summary>
         /// Creates and attaches a color texture to the framebuffer.
         /// </summary>
         /// <param name="w">Width of the color texture in pixels.</param>
         /// <param name="h">Height of the color texture in pixels.</param>
         void AttachColor(const int w, const int h);
-        
+
         /// <summary>
         /// Creates and attaches a depth renderbuffer to the framebuffer.
         /// </summary>
         /// <param name="w">Width of the depth renderbuffer in pixels.</param>
         /// <param name="h">Height of the depth renderbuffer in pixels.</param>
         void AttachDepth(const int w, const int h);
-        
+
         /// <summary>
         /// Creates and attaches a combined depth-stencil renderbuffer to the framebuffer.
         /// </summary>
         /// <param name="w">Width of the depth-stencil renderbuffer in pixels.</param>
         /// <param name="h">Height of the depth-stencil renderbuffer in pixels.</param>
         void AttachDepthStencil(const int w, const int h);
-        
+
         /// <summary>
         /// Creates and attaches a depth texture to the framebuffer.
         /// Unlike renderbuffers, depth textures can be sampled in shaders.

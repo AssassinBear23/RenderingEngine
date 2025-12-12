@@ -1,6 +1,13 @@
 #include "core/sceneManager.h"
 #include "Editor.h"
+#include "panel.h"
 #include "panels/ViewportPanel.h"
+#include <cassert>
+#include <core/rendering/frameBuffer.h>
+#include <GLFW/glfw3.h>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 namespace editor
 {
@@ -125,20 +132,8 @@ namespace editor
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 
-    GLuint Editor::framebuffer() const { return m_viewport ? m_viewport->framebuffer() : 0; }
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    int    Editor::getViewportWidth() const { return m_viewport ? m_viewport->GetWidth() : 0; }
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    int    Editor::getViewportHeight() const { return m_viewport ? m_viewport->GetHeight() : 0; }
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <returns></returns>
-    bool   Editor::viewportFocused() const { return m_viewport ? m_viewport->isFocused() : false; }
+    core::FrameBuffer* Editor::GetFrameBuffer()     const { return m_viewport ? m_viewport->GetFrameBuffer() : nullptr; }
+    int                Editor::getViewportWidth()   const { return m_viewport ? m_viewport->GetWidth()       : 0; }
+    int                Editor::getViewportHeight()  const { return m_viewport ? m_viewport->GetHeight()      : 0; }
+    bool               Editor::viewportFocused()    const { return m_viewport ? m_viewport->isFocused()      : false; }
 }
