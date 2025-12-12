@@ -9,18 +9,7 @@ namespace core
         Create(m_specs.width, m_specs.height);
     }
 
-
     FrameBuffer::~FrameBuffer() { Destroy(); m_specs.width = m_specs.height = 0; }
-
-    void FrameBuffer::Bind() const
-    {
-        glBindFramebuffer(GL_FRAMEBUFFER, m_fboID);
-    }
-
-    void FrameBuffer::Unbind() const
-    {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
 
     void FrameBuffer::Resize(const int width, const int height)
     {
@@ -64,11 +53,9 @@ namespace core
         if (!m_isValid)
         {
             // Log error if framebuffer is incomplete
-            printf("Framebuffer incomplete! Status: 0x%X\n", status);
+            printf("[FRAMEBUFFER] Framebuffer incomplete! Status: 0x%X\n", status);
             Destroy();
         }
-        else
-            printf("Framebuffer created successfully (%dx%d, ID: %u)\n", w, h, m_fboID);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
@@ -100,6 +87,8 @@ namespace core
         glTexImage2D(GL_TEXTURE_2D, 0, m_specs.colorFormat, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture, 0);
     }
 

@@ -48,8 +48,8 @@ namespace core
             if (skippedEffects > 0 || skippedEffects == m_effects.size())
             {
                 // If all effects were skipped, copy input to output directly using blit
-                glBindFramebuffer(GL_READ_FRAMEBUFFER, inputBuffer.GetFBO());
-                glBindFramebuffer(GL_DRAW_FRAMEBUFFER, outputBuffer.GetFBO());
+                inputBuffer.BindRead();
+                outputBuffer.BindDraw();
                 glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
             }
