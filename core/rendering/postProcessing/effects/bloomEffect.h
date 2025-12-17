@@ -8,9 +8,12 @@ namespace core
 {
     class FrameBuffer;
     class Material;
+    class Shader;
 
     namespace postProcessing
     {
+        class PostProcessingManager;
+
         enum class BloomDebugMode
         {
             None,           // Normal bloom rendering
@@ -21,9 +24,9 @@ namespace core
         class BloomEffect : public PostProcessingEffectBase
         {
         public:
-            BloomEffect();
+            BloomEffect(std::weak_ptr<PostProcessingManager> manager);
             int GetPassCount() const override;
-            void Apply(GLuint inputTexture, core::FrameBuffer& outputFBO, const int width, const int height, unsigned int passIndex = 0) override;
+            void Apply(FrameBuffer& inputFBO, FrameBuffer& outputFBO, const int width, const int height) override;
             void DrawGui() override;
 
             // Debug getters
@@ -39,16 +42,21 @@ namespace core
             void SetBlurAmount(int amount) { m_blurAmount = amount; }
 
         private:
-            std::shared_ptr<core::Material> m_blurMaterial;
-            std::shared_ptr<core::Material> m_brightPassMaterial;
+            std::shared_ptr<Material> m_blurMaterial;
+            std::shared_ptr<Material> m_brightPassMaterial;
+            std::shared_ptr<Material> m_compositeMaterial;
+            std::shared_ptr<Shader> m_brightPassShader;
+            std::shared_ptr<Shader> m_blurShader;
+            std::shared_ptr<Shader> m_compositeShader;
+
             
             int m_blurAmount = 5;
             float m_bloomThreshold = 0.2f;
             float m_intensity = 1.0f;
             BloomDebugMode m_debugMode = BloomDebugMode::None;
-            
-            // Store original scene texture for final composition
-            GLuint m_originalSceneTexture = 0;
+
+            FrameBuffer tempFBO_1;
+            FrameBuffer tempFBO_2;
         };
     } // namespace postProcessing
 } // namespace core

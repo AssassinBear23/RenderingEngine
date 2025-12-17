@@ -6,25 +6,26 @@
 #include "core/objectSystems/components/Renderer.h"
 #include "core/rendering/frameBuffer.h"
 #include "core/rendering/mesh.h"
+#include "core/rendering/postProcessing/postProcessingManager.h"
+#include "core/rendering/shader.h"
 #include "core/rendering/texture.h"
 #include "core/scene.h"
 #include "core/sceneManager.h"
 #include "editor/Editor.h"
-#include <core/rendering/postProcessing/effects/bloomEffect.h>
-#include <core/rendering/postProcessing/postProcessingManager.h>
-#include <core/Rendering/shader.h>
+#include "editor/inputManager.h"
+#include "editor/panels/hierarchyPanel.h"
+#include "editor/panels/inspectorPanel.h"
+#include "editor/panels/postProcessingPanel.h"
+#include "editor/panels/viewportPanel.h"
 #include <cstdio>
-#include <editor/inputManager.h>
-#include <editor/panels/hierarchyPanel.h>
-#include <editor/panels/inspectorPanel.h>
-#include <editor/panels/postProcessingPanel.h>
-#include <editor/panels/viewportPanel.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/ext/matrix_float4x4.hpp>
 #include <glm/ext/vector_float3.hpp>
 #include <glm/ext/vector_float4.hpp>
+#include <iostream>
 #include <memory>
+#include <ostream>
 #include <unordered_map>
 using namespace editor;
 
@@ -40,6 +41,59 @@ static double g_lastY = 0.0;
 static double g_mouseDeltaX = 0.0;
 static double g_mouseDeltaY = 0.0;
 
+void APIENTRY glDebugOutput(GLenum source,
+                            GLenum type,
+                            unsigned int id,
+                            GLenum severity,
+                            GLsizei length,
+                            const char* message,
+                            const void* userParam)
+{
+    // ignore non-significant error/warning codes
+    if (id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
+
+    std::cout << "---------------" << std::endl;
+    std::cout << "Debug message (" << id << "): " << message << std::endl;
+
+    switch (source)
+    {
+    case GL_DEBUG_SOURCE_API:             std::cout << "Source: API"; break;
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   std::cout << "Source: Window System"; break;
+    case GL_DEBUG_SOURCE_SHADER_COMPILER: std::cout << "Source: Shader Compiler"; break;
+    case GL_DEBUG_SOURCE_THIRD_PARTY:     std::cout << "Source: Third Party"; break;
+    case GL_DEBUG_SOURCE_APPLICATION:     std::cout << "Source: Application"; break;
+    case GL_DEBUG_SOURCE_OTHER:           std::cout << "Source: Other"; break;
+    } std::cout << std::endl;
+
+    switch (type)
+    {
+    case GL_DEBUG_TYPE_ERROR:               std::cout << "Type: Error"; break;
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: std::cout << "Type: Deprecated Behaviour"; break;
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  std::cout << "Type: Undefined Behaviour"; break;
+    case GL_DEBUG_TYPE_PORTABILITY:         std::cout << "Type: Portability"; break;
+    case GL_DEBUG_TYPE_PERFORMANCE:         std::cout << "Type: Performance"; break;
+    case GL_DEBUG_TYPE_MARKER:              std::cout << "Type: Marker"; break;
+    case GL_DEBUG_TYPE_PUSH_GROUP:          std::cout << "Type: Push Group"; break;
+    case GL_DEBUG_TYPE_POP_GROUP:           std::cout << "Type: Pop Group"; break;
+    case GL_DEBUG_TYPE_OTHER:               std::cout << "Type: Other"; break;
+    } std::cout << std::endl;
+
+    switch (severity)
+    {
+    case GL_DEBUG_SEVERITY_HIGH:         std::cout << "Severity: high"; break;
+    case GL_DEBUG_SEVERITY_MEDIUM:       std::cout << "Severity: medium"; break;
+    case GL_DEBUG_SEVERITY_LOW:          std::cout << "Severity: low"; break;
+    case GL_DEBUG_SEVERITY_NOTIFICATION: std::cout << "Severity: notification"; break;
+    } std::cout << std::endl;
+    std::cout << std::endl;
+
+    // Break on errors and warnings in debug builds
+    if (type == GL_DEBUG_TYPE_ERROR || type == GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR)
+    {
+        //__debugbreak();  // MSVC debugger break - inspect call stack here!
+    }
+}
+
 int main()
 {
     glfwInit();
@@ -47,6 +101,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
     GLFWwindow* window = glfwCreateWindow(g_width, g_height, "FinalEngine", nullptr, nullptr);
     if (window == nullptr)
@@ -63,13 +118,20 @@ int main()
         return -1;
     }
 
-    auto postProcessingManager = std::make_shared<core::postProcessing::PostProcessingManager>();
-    auto bloomEffect = std::make_shared<core::postProcessing::BloomEffect>();
-    bloomEffect->SetEnabled(true);
-    postProcessingManager->AddEffect(bloomEffect);
+    int flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+    {
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(glDebugOutput, nullptr);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    }
 
+    auto postProcessingManager = std::make_shared<core::postProcessing::PostProcessingManager>();
+    postProcessingManager->Initialize();
+    
     Editor editor;
-    editor.init(window, "#version 400");
+    editor.init(window, "#version 430");
 
     editor.addPanel<ViewportPanel>(editor);
     editor.addPanel<HierarchyPanel>();
@@ -170,7 +232,7 @@ int main()
         lightComp->color = glm::vec4(1.0f, 0.8f, 0.2f, 1.0f); // Orange color
 
         return scene;
-    });
+        });
 
     // Create Scene 2
     sceneManager->RegisterScene("Scene 2", [&modelShader, &litSurfaceShader, &lightBulbShader](auto scene) {
@@ -232,7 +294,7 @@ int main()
         lightComp2->color = glm::vec4(0.2f, 0.8f, 1.0f, 1.0f); // Orange color
 
         return scene;
-    });
+        });
 
     sceneManager->LoadScene("Scene 1", uboLights);
 
@@ -245,6 +307,14 @@ int main()
     double finishFrameTime = 0.0;
     float deltaTime = 0.0f;
 
+    core::FrameBuffer sceneRender("SceneFBO", core::FrameBufferSpecifications{
+            static_cast<unsigned int>(g_width),
+            static_cast<unsigned int>(g_height),
+            core::AttachmentType::COLOR_DEPTH,
+            GL_RGBA16F,
+            GL_DEPTH_COMPONENT
+    });
+
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -253,47 +323,35 @@ int main()
         editor.draw();
 
         auto currentScene = sceneManager->GetCurrentScene();
-        
+
         int vw = editor.getViewportWidth();
         int vh = editor.getViewportHeight();
 
-        core::FrameBuffer* viewportFramebuffer = editor.GetFrameBuffer();
-        core::FrameBuffer sceneRender(core::FrameBufferSpecifications{
-                    static_cast<unsigned int>(vw),
-                    static_cast<unsigned int>(vh),
-                    core::AttachmentType::COLOR_DEPTH
-                                    });
+        sceneRender.Resize(vw, vh);
+
+        core::FrameBuffer* viewportFrameBuffer = editor.GetFrameBuffer();
 
         if (vw > 0 && vh > 0)
         {
-            sceneRender.Bind();
-            glViewport(0, 0, vw, vh);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            sceneRender.BindAndClear(vw, vh);
 
             if (editor.viewportFocused())
                 inputManager.ProcessInput(window, editorCamera.get(), deltaTime);
 
             // Render 3D scene
             glm::mat4 view = editorCamera->GetViewMatrix();
-            glm::mat4 projection = editorCamera->GetProjectionMatrix(
-                static_cast<float>(vw),
-                static_cast<float>(vh)
-            );
+            glm::mat4 projection = editorCamera->GetProjectionMatrix(vw, vh);
 
             if (currentScene)
                 currentScene->Render(view, projection);
 
             // Apply post-processing if effects are registered
-            if (postProcessingManager)
+            if (postProcessingManager && viewportFrameBuffer)
             {
                 // Process back to viewport
                 postProcessingManager->ProcessStack(
-                    sceneRender,
-                    *viewportFramebuffer,
-                    static_cast<unsigned int>(vw),
-                    static_cast<unsigned int>(vh));
-                
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                    sceneRender, *viewportFrameBuffer,
+                    vw, vh);
             }
 
             sceneRender.Unbind();

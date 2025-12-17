@@ -22,7 +22,7 @@ namespace editor
         bool   isFocused() const { return m_focused; }
 
     private:
-        core::FrameBuffer m_frameBuffer{ {800, 600, core::AttachmentType::COLOR_DEPTH}};
+        core::FrameBuffer m_frameBuffer{ "viewportFBO", {800, 600, core::AttachmentType::COLOR_DEPTH}};
         bool m_focused = false;
     };
 }

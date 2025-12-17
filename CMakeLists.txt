@@ -49,7 +49,9 @@ add_executable(FinalEngine
   "core/rendering/frameBuffer.cpp"
   "core/rendering/postProcessing/postProcessingManager.cpp"
   "core/rendering/postProcessing/postProcessingEffectBase.cpp"
+  "core/rendering/postProcessing/effects/postProcessingEffects.h"
   "core/rendering/postProcessing/effects/bloomEffect.cpp"
+  "core/rendering/postProcessing/effects/invertEffect.cpp"
   "core/objectSystems/components/renderer.cpp"
   "core/objectSystems/object.cpp"
   "core/objectSystems/component.cpp"
@@ -62,7 +64,6 @@ add_executable(FinalEngine
   "editor/panels/heirarchyPanel.cpp"
   "editor/panels/inspectorPanel.cpp"
   "editor/panels/postProcessingPanel.cpp"
-  
 )
 
 add_custom_command(

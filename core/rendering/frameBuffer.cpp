@@ -1,10 +1,13 @@
 #include "frameBuffer.h"
 #include <cstdio>
+#include <string>
 
 namespace core
 {
-    FrameBuffer::FrameBuffer(const FrameBufferSpecifications& specs)
-        : m_specs(specs)
+    std::string FrameBuffer::m_currentBoundFBOName = "Not Set";
+
+    FrameBuffer::FrameBuffer(const std::string& name, const FrameBufferSpecifications& specs)
+        : m_specs(specs), m_name(name)
     {
         Create(m_specs.width, m_specs.height);
     }
@@ -17,6 +20,8 @@ namespace core
         if ((width <= 0 || height <= 0) || (m_specs.width == width && m_specs.height == height))
             return;
 
+        printf("[FRAMEBUFFER] Resizing %-20s to w: %4i, h: %4i.\n", m_name.c_str(), width, height);
+
         m_specs.width = width;
         m_specs.height = height;
         Destroy();
@@ -25,7 +30,24 @@ namespace core
 
     void FrameBuffer::Create(const int w, const int h)
     {
+        // Ensure we start clean
+        if (m_fboID != 0)
+        {
+            printf("[FRAMEBUFFER] WARNING: Create() called with existing FBO ID %u for '%s'. Destroying first.\n", 
+                   m_fboID, m_name.c_str());
+            Destroy();
+        }
+
         glGenFramebuffers(1, &m_fboID);
+        
+        // Verify the FBO was generated
+        if (m_fboID == 0)
+        {
+            printf("[FRAMEBUFFER] ERROR: glGenFramebuffers failed for '%s'\n", m_name.c_str());
+            m_isValid = false;
+            return;
+        }
+        
         glBindFramebuffer(GL_FRAMEBUFFER, m_fboID);
 
         switch (m_specs.attachmentType)
@@ -53,7 +75,7 @@ namespace core
         if (!m_isValid)
         {
             // Log error if framebuffer is incomplete
-            printf("[FRAMEBUFFER] Framebuffer incomplete! Status: 0x%X\n", status);
+            printf("[FRAMEBUFFER] Framebuffer '%s' incomplete! Status: 0x%X\n", m_name.c_str(), status);
             Destroy();
         }
 
@@ -84,7 +106,20 @@ namespace core
     {
         glGenTextures(1, &m_colorTexture);
         glBindTexture(GL_TEXTURE_2D, m_colorTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, m_specs.colorFormat, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        
+        // Determine the proper format and type based on internal format
+        GLenum format = GL_RGBA;
+        GLenum type = GL_UNSIGNED_BYTE;
+        
+        // For floating-point formats, use GL_FLOAT
+        if (m_specs.colorFormat == GL_RGBA16F || m_specs.colorFormat == GL_RGBA32F ||
+            m_specs.colorFormat == GL_RGB16F || m_specs.colorFormat == GL_RGB32F)
+        {
+            type = GL_FLOAT;
+            format = (m_specs.colorFormat == GL_RGB16F || m_specs.colorFormat == GL_RGB32F) ? GL_RGB : GL_RGBA;
+        }
+        
+        glTexImage2D(GL_TEXTURE_2D, 0, m_specs.colorFormat, w, h, 0, format, type, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

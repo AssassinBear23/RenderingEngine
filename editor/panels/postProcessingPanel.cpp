@@ -41,20 +41,11 @@ namespace editor
             {
                 ImGui::PushID(effect.get());
 
-                bool enabled = effect->IsEnabled();
-                if (ImGui::Checkbox(effect->GetName().c_str(), &enabled))
-                {
-                    printf("Changing %s state to %s\n", effect->GetName().c_str(), enabled ? "enabled" : "disabled");
-                    effect->SetEnabled(enabled);
-                }
+                ImGui::Checkbox(effect->GetName().c_str(), &(effect->isEnabled));
 
-
-                if (enabled)
-                {
-                    ImGui::Indent();
-                    effect->DrawGui();
-                    ImGui::Unindent();
-                }
+                ImGui::Indent();
+                effect->DrawGui();
+                ImGui::Unindent();
 
                 ImGui::Separator();
                 ImGui::PopID();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glad/glad.h>
+#include <string>
 
 namespace core
 {
@@ -43,7 +44,15 @@ namespace core
         /// Creates the FBO and all required attachments based on the specifications.
         /// </summary>
         /// <param name="specs">Configuration parameters for the framebuffer</param>
-        explicit FrameBuffer(const FrameBufferSpecifications& specs);
+        explicit FrameBuffer(const std::string& name, const FrameBufferSpecifications& specs);
+
+        /// <summary>
+        /// Constructs a default FrameBuffer object.
+        /// <remark>
+        /// WARNING: is empty/uninitialized.
+        /// </remark>
+        /// </summary>
+        explicit FrameBuffer() = default;
 
         /// <summary>
         /// Destroys the framebuffer and releases all associated OpenGL resources.
@@ -54,8 +63,20 @@ namespace core
         /// Binds this framebuffer as the current render target.
         /// All subsequent rendering operations will be directed to this framebuffer's attachments.
         /// </summary>
-        void Bind() const { glBindFramebuffer(GL_FRAMEBUFFER, m_fboID); }
-        
+        void Bind() const
+        {
+            if (!m_isValid || m_fboID == 0)
+            {
+                printf("[FRAMEBUFFER] ERROR: Attempting to bind invalid framebuffer '%s' (ID: %u, Valid: %d)\n",
+                       m_name.c_str(), m_fboID, m_isValid);
+                return;
+            }
+
+            m_currentBoundFBOName = m_name;
+
+            glBindFramebuffer(GL_FRAMEBUFFER, m_fboID);
+        }
+
         /// <summary>
         /// Binds this framebuffer and clears its color and depth attachments.
         /// Sets the viewport to the framebuffer's dimensions.
@@ -72,7 +93,10 @@ namespace core
         /// <summary>
         /// Binds this framebuffer object for read operations.
         /// </summary>
-        void BindRead() const { glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fboID); }
+        void BindRead() const 
+        { 
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fboID); 
+        }
 
         /// <summary>
         /// Binds this framebuffer object for draw operations.
@@ -83,6 +107,16 @@ namespace core
         /// Unbinds this framebuffer, restoring the default framebuffer (typically the screen) as the render target.
         /// </summary>
         void Unbind() const { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+
+        static void ClearBound(int width, int height, const char* file, int line)
+        {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glViewport(0, 0, width, height);
+
+            printf("%s (%d)\n\t[FRAMEBUFFER] Cleared currently bound framebuffer (name: %s) to w: %4i, h: %4i.\n", file, line, m_currentBoundFBOName.c_str(), width, height);
+        }
+
+#define CLEAR_BOUND(width, height) core::FrameBuffer::ClearBound(width, height, __FILE__, __LINE__)
 
         /// <summary>
         /// Resizes the framebuffer and recreates all attachments with the new dimensions.
@@ -128,6 +162,8 @@ namespace core
         /// </summary>
         /// <returns>The height in pixels.</returns>
         unsigned int GetHeight() const { return m_specs.height; }
+
+        std::string GetName() const { return m_name; }
 
         /// <summary>
         /// Gets the complete specification structure of this framebuffer.
@@ -186,6 +222,8 @@ namespace core
         /// <param name="h">Height of the depth texture in pixels.</param>
         void AttachDepthTexture(const int w, const int h);
 
+        static std::string m_currentBoundFBOName;
+        std::string m_name;
         FrameBufferSpecifications m_specs;  // Configuration specifications for this framebuffer
         GLuint m_fboID = 0;                 // OpenGL framebuffer object ID
         GLuint m_colorTexture = 0;          // OpenGL texture ID for color attachment
