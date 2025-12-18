@@ -96,7 +96,11 @@ namespace core
 
             lightData.positions[i] = glm::vec4(lightGO->transform->position, 1.0f);
             lightData.directions[i] = glm::vec4(lightGO->transform->forward(), 0.0f);
-            lightData.colors[i] = light->GetColor();
+            
+            glm::vec4 lightColor = light->GetColor();
+            lightColor.w = light->intensity.Get(); // Store intensity in alpha channel
+            lightData.colors[i] = lightColor;
+            
             lightData.lightTypes[i] = glm::ivec4(ToInt(light->lightType.Get()), 0, 0, 0);
 
             // printf("[Render] Rendering shadow map for light %zu (type: %d)\n", i, ToInt(light->lightType.Get()));
@@ -210,59 +214,22 @@ namespace core
 
     void Scene::RenderFinalScene(const glm::mat4& view, const glm::mat4& projection)
     {
-        // printf("  [FinalScene] Rendering %zu renderers\n", m_renderers.size());
-        
-        // Check current framebuffer
-        // GLint currentFB;
-        // glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFB);
-        // printf("  [FinalScene] Current framebuffer: %d\n", currentFB);
-        
-        // Check viewport
-        // GLint viewport[4];
-        // glGetIntegerv(GL_VIEWPORT, viewport);
-        // printf("  [FinalScene] Viewport: %d x %d at (%d, %d)\n", viewport[2], viewport[3], viewport[0], viewport[1]);
-
-        // int renderedCount = 0;
-        
         // Rendering all renderers
         for (const auto& renderer : m_renderers)
         {
-            if (!renderer)
-            {
-                // printf("  [FinalScene] Skipping null renderer\n");
-                continue;
-            }
+            if (!renderer) continue;
             
             auto go = renderer->GetOwner();
-            if (!go)
-            {
-                // printf("  [FinalScene] Skipping renderer with no owner\n");
-                continue;
-            }
+            if (!go) continue;
             
-            if (!go->isEnabled)
-            {
-                // printf("  [FinalScene] Skipping disabled GameObject: %s\n", go->name.c_str());
-                continue;
-            }
-            
-            if (!renderer->isEnabled)
-            {
-                // printf("  [FinalScene] Skipping disabled renderer on: %s\n", go->name.c_str());
-                continue;
-            }
+            if (!go->isEnabled) continue;
+            if (!renderer->isEnabled) continue;
 
             glm::mat4 worldMatrix = CalculateWorldMatrix(go);
             glm::mat4 mvp = projection * view * worldMatrix;
 
             auto material = renderer->GetMaterial();
-            if (!material)
-            {
-                // printf("  [FinalScene] Skipping renderer with no material on: %s\n", go->name.c_str());
-                continue;
-            }
-
-            // printf("  [FinalScene] Rendering: %s (meshes: %zu)\n", go->name.c_str(), renderer->GetMeshes().size());
+            if (!material) continue;
 
             // Set matrices
             material->SetMat4("mvpMatrix", mvp);
@@ -272,13 +239,7 @@ namespace core
             if (!m_lightSpaceMatrices.empty() && !m_depthMaps.empty())
             {
                 material->SetMat4("lightSpaceMatrix", m_lightSpaceMatrices[0]);
-                
-                // printf("  [FinalScene] Binding shadow map to unit 3 (texture ID: %d)\n", m_depthMaps[0]);
             }
-            // else
-            // {
-            //     printf("  [FinalScene] WARNING: No shadow maps available!\n");
-            // }
             
             // Check OpenGL error before rendering
             GLenum err = glGetError();
@@ -301,12 +262,7 @@ namespace core
                 if (shadowMapLoc != -1)
                 {
                     glUniform1i(shadowMapLoc, 3);
-                    // printf("  [FinalScene] Shadow map uniform set at location %d\n", shadowMapLoc);
                 }
-                // else
-                // {
-                //     printf("  [FinalScene] WARNING: shadowMap uniform not found in shader!\n");
-                // }
             }
             
             // Now render the meshes
@@ -315,8 +271,6 @@ namespace core
                 mesh.Render(GL_TRIANGLES);
             }
             
-            // renderedCount++;
-            
             // Check OpenGL error after rendering
             err = glGetError();
             if (err != GL_NO_ERROR)
@@ -324,8 +278,6 @@ namespace core
                 printf("  [ERROR] OpenGL error after rendering %s: 0x%x\n", go->name.c_str(), err);
             }
         }
-        
-        // printf("  [FinalScene] Successfully rendered %d objects\n", renderedCount);
     }
 
     glm::mat4 Scene::CalculateWorldMatrix(const std::shared_ptr<GameObject>& go)

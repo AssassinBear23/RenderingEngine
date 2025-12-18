@@ -19,20 +19,16 @@ void main()
     float ao = texture(aoMap, uv).r;
 
 
-    vec3 normal;
+    vec3 normal = normalize(fNor);
     // Get normal from map
     if (useNormalMap) {
         vec3 tangentNormal = texture(normalMap, uv).rgb;
         tangentNormal = tangentNormal * 2.0 - 1.0; // Transform from [0,1] to [-1,1]
         normal = normalize(TBN * tangentNormal);
     }
-    else{
-        normal = normalize(fNor);
-    }
 
     // Calculate lighting with calculated normal
     vec3 lighting = calculateLighting(fPos, normal);
 
-    FragColor = vec4(normal * 0.5 + 0.5, 1.0); // For debugging normals
     FragColor = vec4(albedo * lighting * ao, 1.0);
 }

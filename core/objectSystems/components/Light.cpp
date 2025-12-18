@@ -16,17 +16,18 @@ namespace core
         float textWidth = ImGui::CalcTextSize(label).x;
         float availableWidth = ImGui::GetContentRegionAvail().x - rightOffset;
         float textPosX = (availableWidth - textWidth) * 0.5f;
-        
+
         if (textPosX > 0)
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + textPosX);
-        
+
         ImGui::Text(label);
     }
 
     void Light::DrawGui()
     {
         // Use proxy system to make changes call the callback method.
-        ImGui::ColorPicker4("Light Color", glm::value_ptr(*&color));
+        // Add HDR flag to allow values above 1.0
+        ImGui::ColorPicker4("Light Color", glm::value_ptr(*&color), ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_Float);
 
         ImGui::Spacing();
 
@@ -38,29 +39,34 @@ namespace core
         float buttonWidth = ImGui::GetFrameHeight();
         if (ImGui::ArrowButton("##light_type_decrease", ImGuiDir_Left))
             --lightType;
-        
+
         ImGui::SameLine();
-        
+
         // Draw centered text with right arrow offset
         std::string lightTypeLabel = std::string("Light Type: ") + core::ToString(lightType.Get());
         DrawCenteredText(lightTypeLabel.c_str(), buttonWidth);
-        
+
         // Align right arrow to the right
         ImGui::SameLine();
         float rightArrowPosX = ImGui::GetWindowWidth() - buttonWidth - ImGui::GetStyle().WindowPadding.x;
         ImGui::SetCursorPosX(rightArrowPosX);
-        
+
         if (ImGui::ArrowButton("##light_type_increase", ImGuiDir_Right))
             ++lightType;
     }
 
     void Light::UpdateRendererColor(glm::vec4 newColor)
     {
-        if (auto renderer = m_renderer.lock()) {
-            if (auto material = renderer->GetMaterial()) {
+        if (auto renderer = m_renderer.lock())
+            if (auto material = renderer->GetMaterial())
                 material->SetVec4("lightColor", newColor);
-            }
-        }
+    }
+
+    void Light::UpdateRendererIntensity(float newIntensity)
+    {
+        if (auto renderer = m_renderer.lock())
+            if (auto material = renderer->GetMaterial())
+                material->SetFloat("intensity", newIntensity);
     }
 
     void Light::OnAttach(std::weak_ptr<GameObject> owner)
@@ -70,10 +76,11 @@ namespace core
         {
             // Cache the renderer component
             m_renderer = go->GetComponent<Renderer>();
-            
+
             // Set initial color
             UpdateRendererColor(color.Get());
-            
+            UpdateRendererIntensity(intensity.Get());
+
             if (auto scene = go->GetScene())
             {
                 m_scene = scene;
@@ -82,7 +89,10 @@ namespace core
                 // Set callback to update renderer when color changes
                 color.SetOnChange([this](glm::vec4 newColor) {
                     UpdateRendererColor(newColor);
-                });
+                    });
+                intensity.SetOnChange([this](float newIntensity) {
+                    UpdateRendererIntensity(newIntensity);
+                    });
             }
         }
     }

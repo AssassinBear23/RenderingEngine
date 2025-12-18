@@ -168,6 +168,12 @@ namespace core
         /// </summary>
         /// <param name="newColor">The new color to apply to the renderer's material.</param>
         void UpdateRendererColor(glm::vec4 newColor);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="newIntensity"></param>
+        void UpdateRendererIntensity(float newIntensity);
         
         /// <summary>
         /// Cached global position of the light in world space.

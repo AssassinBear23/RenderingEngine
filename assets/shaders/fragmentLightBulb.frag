@@ -5,8 +5,9 @@ in vec3 fNor;
 in vec2 uv;
 
 uniform vec4 lightColor;
+uniform float intensity;
 
 void main()
 {
-   FragColor = lightColor;
+   FragColor = lightColor * intensity;
 }
