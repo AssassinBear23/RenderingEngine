@@ -6,6 +6,7 @@
 #include "postProcessingManager.h"
 #include <algorithm>
 #include <cstdio>
+#include <iostream>
 #include <memory>
 
 namespace core
@@ -41,7 +42,7 @@ namespace core
                 if (isLastEffect)
                     currentOutput = &outputBuffer;
 
-                printf("[POSTPROCESSMANAGER] Applying effect: %s (Passes: %d)\n== Parameters ==\nInput FBO name: %s\nOutput FBO name: %s\nWidth: %d\nHeight: %d\n", 
+                printf("[POSTPROCESS MANAGER] Applying effect: %s (Passes: %d)\n== Parameters ==\nInput FBO name: %s\nOutput FBO name: %s\nWidth: %d\nHeight: %d\n", 
                        effect->GetName().c_str(), 
                        effect->GetPassCount(),
                        currentInput->GetName().c_str(),
@@ -52,6 +53,7 @@ namespace core
                 effect->Apply(*currentInput, *currentOutput, width, height);
                 currentInput = currentOutput;
             }
+            std::cout << "[POSTPROCESS MANAGER] Finished processing effects." << std::endl << std::endl;
         }
 
         bool PostProcessingManager::AddEffect(const std::shared_ptr<PostProcessingEffectBase> effect)

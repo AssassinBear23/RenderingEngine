@@ -155,4 +155,45 @@ namespace core
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTexture, 0);
     }
 
+    FrameBuffer::FrameBuffer(FrameBuffer&& other) noexcept
+        : m_name(std::move(other.m_name))
+        , m_specs(std::move(other.m_specs))
+        , m_fboID(other.m_fboID)
+        , m_colorTexture(other.m_colorTexture)
+        , m_depthTexture(other.m_depthTexture)
+        , m_depthRenderbuffer(other.m_depthRenderbuffer)
+        , m_isValid(other.m_isValid)
+    {
+        // Reset the moved-from object
+        other.m_fboID = 0;
+        other.m_colorTexture = 0;
+        other.m_depthTexture = 0;
+        other.m_depthRenderbuffer = 0;
+        other.m_isValid = false;
+    }
+
+    FrameBuffer& FrameBuffer::operator=(FrameBuffer&& other) noexcept
+    {
+        if (this != &other)
+        {
+            Destroy(); // Clean up current resources
+
+            m_name = std::move(other.m_name);
+            m_specs = std::move(other.m_specs);
+            m_fboID = other.m_fboID;
+            m_colorTexture = other.m_colorTexture;
+            m_depthTexture = other.m_depthTexture;
+            m_depthRenderbuffer = other.m_depthRenderbuffer;
+            m_isValid = other.m_isValid;
+
+            // Reset the moved-from object
+            other.m_fboID = 0;
+            other.m_colorTexture = 0;
+            other.m_depthTexture = 0;
+            other.m_depthRenderbuffer = 0;
+            other.m_isValid = false;
+        }
+        return *this;
+    }
+
 } // namespace core

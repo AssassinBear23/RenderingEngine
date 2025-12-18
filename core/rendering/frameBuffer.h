@@ -59,6 +59,14 @@ namespace core
         /// </summary>
         ~FrameBuffer();
 
+        // Delete copy operations
+        FrameBuffer(const FrameBuffer&) = delete;
+        FrameBuffer& operator=(const FrameBuffer&) = delete;
+
+        // Enable move operations (optional but recommended)
+        FrameBuffer(FrameBuffer&& other) noexcept;
+        FrameBuffer& operator=(FrameBuffer&& other) noexcept;
+
         /// <summary>
         /// Binds this framebuffer as the current render target.
         /// All subsequent rendering operations will be directed to this framebuffer's attachments.
