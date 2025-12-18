@@ -1,10 +1,8 @@
 #pragma once
 #include "Panel.h"
-#include <glad/glad.h>
+#include <core/rendering/frameBuffer.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
 #include <memory>
 #include <vector>
 
@@ -34,7 +32,7 @@ namespace editor
 
 
         // Viewport render target (owned by ViewportPanel; Editor proxies these)
-        GLuint framebuffer() const;  // 0 if not ready
+        core::FrameBuffer* GetFrameBuffer() const;  // 0 if not ready
         int    getViewportWidth() const;
         int    getViewportHeight() const;
         bool   viewportFocused() const;

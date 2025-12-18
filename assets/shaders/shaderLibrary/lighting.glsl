@@ -6,7 +6,7 @@ layout(std140, binding = 0) uniform LightBlock
 {
     vec4 positions[4];
     vec4 directions[4];
-    vec4 colors[4];
+    vec4 colors[4];     // .rgb = color, .w = intensity
     ivec4 lightTypes[4];
     int numLights;
 };
@@ -62,13 +62,14 @@ vec3 calculateLighting(vec3 fragPos, vec3 normal)
         float diff = 0.0;
         vec3 diffuse = vec3(0.0);
         float attenuation = 1.0;
+        float intensity = colors[i].w;  // Get intensity from color alpha channel
     
         int lightType = lightTypes[i].x; // Access first component
         
         if (lightType == 0) // Point light
         {
             diff = max(dot(norm, lightDir), 0.0);
-            diffuse = diff * colors[i].rgb;
+            diffuse = diff * colors[i].rgb * intensity;
             
             float distance = length(lightPos - fragPos);
             attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * distance * distance);
@@ -79,7 +80,7 @@ vec3 calculateLighting(vec3 fragPos, vec3 normal)
         {
             lightDir = normalize(-directions[i].xyz);
             diff = max(dot(norm, lightDir), 0.0);
-            diffuse = diff * colors[i].rgb;
+            diffuse = diff * colors[i].rgb * intensity;
             
             // Calculate shadow for directional light (first light only for now)
             float shadow = 0.0;
@@ -99,7 +100,7 @@ vec3 calculateLighting(vec3 fragPos, vec3 normal)
             if (theta > cutoff)
             {
                 diff = max(dot(norm, lightDir), 0.0);
-                diffuse = diff * colors[i].rgb;
+                diffuse = diff * colors[i].rgb * intensity;
                 float distance = length(lightPos - fragPos);
                 attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * distance * distance);
                 result += diffuse * attenuation;

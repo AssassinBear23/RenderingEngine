@@ -1,24 +1,24 @@
 #pragma once
 
-#include <glad/glad.h>
 #include <memory>
 #include <string>
-
-namespace core // Forward declaration
-{
-    class Material;
-    class FrameBuffer;
-}
+#include "../../property.h"
 
 namespace core
 {
+    class Material;
+    class FrameBuffer;
+    class Shader;
+
     namespace postProcessing
     {
+        class PostProcessingManager;
+
         /// <summary>
         /// Base class for all post-processing effects in the rendering pipeline.
         /// Provides common functionality for managing materials, enable states, and applying effects.
         /// </summary>
-        class PostProcessingEffectBase
+        class PostProcessingEffectBase : public std::enable_shared_from_this<PostProcessingEffectBase>
         {
         public:
             /// <summary>
@@ -26,8 +26,16 @@ namespace core
             /// </summary>
             /// <param name="name">The unique name identifier for this post-processing effect.</param>
             /// <param name="material">The material containing the shader and properties used for this effect.</param>
-            PostProcessingEffectBase(const std::string& name, std::shared_ptr<core::Material> material);
-            
+            PostProcessingEffectBase(const std::string& name, std::shared_ptr<Material> material, std::weak_ptr<PostProcessingManager> manager, bool requireSceneRender);
+
+            /// <summary>
+            /// Performs initialization.
+            /// Called by the Manager when the effect is added to the managers list.
+            /// </summary>
+            void Initialize();
+
+            virtual int GetPassCount() const { return 1; }
+
             /// <summary>
             /// Applies the post-processing effect to the input texture and renders the result to the output framebuffer.
             /// Override this method in derived classes to implement custom effect behavior.
@@ -36,54 +44,57 @@ namespace core
             /// <param name="outputFBO">The framebuffer object to render the processed result into.</param>
             /// <param name="width">The width of the rendering viewport in pixels.</param>
             /// <param name="height">The height of the rendering viewport in pixels.</param>
-            virtual void Apply(GLuint inputTexture, core::FrameBuffer& outputFBO, const int width, const int height);
-            
+            virtual void Apply(FrameBuffer& inputFBO, FrameBuffer& outputFBO, const int width, const int height);
+
             /// <summary>
             /// Draws the GUI elements for this post-processing effect.
             /// Override this method in derived classes to provide custom ImGui controls for effect parameters.
             /// </summary>
             virtual void DrawGui() = 0;
 
-            /// <summary>
-            /// Gets whether this post-processing effect is currently enabled.
-            /// </summary>
-            /// <returns>True if the effect is enabled, false otherwise.</returns>
-            bool IsEnabled() const { return m_enabled; }
-            
-            /// <summary>
-            /// Sets the enabled state of this post-processing effect.
-            /// </summary>
-            /// <param name="enabled">True to enable the effect, false to disable it.</param>
-            void SetEnabled(const bool enabled) { m_enabled = enabled; }
+            Property<bool> isEnabled;
 
 #pragma region GetterMethods
             /// <summary>
             /// Gets the material used by this post-processing effect.
             /// </summary>
             /// <returns>A shared pointer to the material containing the effect's shader and properties.</returns>
-            std::shared_ptr<core::Material> GetMaterial() const { return m_material; }
-            
+            std::shared_ptr<Material> GetMaterial() const { return m_material; }
+
             /// <summary>
             /// Gets the name identifier of this post-processing effect.
             /// </summary>
             /// <returns>A constant reference to the effect's name string.</returns>
             const std::string& GetName() const { return m_name; }
+
+            bool RequiresSceneRender() const { return m_requireSceneRender; }
 #pragma endregion GetterMethods
-        private:
+
+        protected:
+            void RenderQuad(const unsigned int width, const unsigned int height);
+
             /// <summary>
-            /// Flag indicating whether this effect is currently enabled.
+            /// The shader used by the material.
             /// </summary>
-            bool m_enabled = false;
-            
+            std::shared_ptr<Shader> m_shader;
+
             /// <summary>
             /// The material containing the shader and properties used for this effect.
             /// </summary>
-            std::shared_ptr<core::Material> m_material;
-            
+            std::shared_ptr<Material> m_material;
+        
+        private:
             /// <summary>
             /// The unique name identifier for this post-processing effect.
             /// </summary>
             std::string m_name;
+
+            bool m_requireSceneRender;
+
+            /// <summary>
+            /// The post-processing manager that owns this effect.
+            /// </summary>
+            std::weak_ptr<PostProcessingManager> m_manager;
         };
     } // namespace postProcessing
 } // namespace core
