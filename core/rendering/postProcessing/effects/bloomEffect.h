@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../postProcessingEffectBase.h"
-#include <glad/glad.h>
 #include <memory>
+#include "../../../property.h"
 
 namespace core
 {
@@ -25,6 +25,7 @@ namespace core
         {
         public:
             BloomEffect(std::weak_ptr<PostProcessingManager> manager);
+
             int GetPassCount() const override;
             void Apply(FrameBuffer& inputFBO, FrameBuffer& outputFBO, const int width, const int height) override;
             void DrawGui() override;
@@ -51,7 +52,7 @@ namespace core
 
             
             int m_blurAmount = 5;
-            float m_bloomThreshold = 0.2f;
+            Property<float> m_bloomThreshold = 0.2f;
             float m_intensity = 1.0f;
             BloomDebugMode m_debugMode = BloomDebugMode::None;
 

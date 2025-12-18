@@ -235,6 +235,9 @@ namespace core
             material->SetMat4("mvpMatrix", mvp);
             material->SetMat4("modelMatrix", worldMatrix);
             
+            // Set bloom threshold for materials that use it
+            material->SetFloat("bloomThreshold", m_bloomThreshold);
+            
             // Pass light space matrix and shadow map only if we have lights
             if (!m_lightSpaceMatrices.empty() && !m_depthMaps.empty())
             {

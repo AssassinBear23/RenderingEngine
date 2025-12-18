@@ -2,6 +2,8 @@
 #include "../../frameBuffer.h"
 #include "../../shader.h"
 #include "bloomEffect.h"
+#include "../../../scene.h"
+#include "../../../../editor/Editor.h"
 #include <glad/glad.h>
 #include <imgui.h>
 
@@ -20,97 +22,96 @@ namespace core
 
             tempFBO_1 = FrameBuffer("postProcessFBO_1", FrameBufferSpecifications{ 100, 100, AttachmentType::COLOR_ONLY });
             tempFBO_2 = FrameBuffer("postProcessFBO_2", FrameBufferSpecifications{ 100, 100, AttachmentType::COLOR_ONLY });
+
+            m_bloomThreshold.SetOnChange([this](float newThreshold)
+                {
+                    if (auto currentScene = editor::Editor::editorCtx.currentScene)
+                        currentScene->SetBloomThreshold(newThreshold);
+                });
         }
 
         int BloomEffect::GetPassCount() const
         {
-            // In debug modes, we may want to see only certain passes
-            switch (m_debugMode)
-            {
-            case BloomDebugMode::ThresholdOnly:
-                return 1; // Only the bright pass
-            case BloomDebugMode::BlurOnly:
-                return 1 + (m_blurAmount * 2); // Threshold + blur passes (no combine)
-            case BloomDebugMode::None:
-            default:
-                return 1 + (m_blurAmount * 2); // Threshold + blur passes (last blur combines)
-            }
+            return m_blurAmount * 2;
         }
 
         void BloomEffect::Apply(FrameBuffer& inputFBO, FrameBuffer& outputFBO, const int width, const int height)
         {
-            tempFBO_1.Bind();
-
-            if (m_debugMode == BloomDebugMode::ThresholdOnly)
-                outputFBO.Bind();
-
-            CLEAR_BOUND(width, height);
-
             std::shared_ptr<core::Material> material;
 
-            //// First pass: bright pass (threshold)
-            material = m_brightPassMaterial;
-            material->SetFloat("threshold", m_bloomThreshold);
+            GLuint thresholdTexture = inputFBO.GetColorAttachment(1);
+            
+            tempFBO_1.Resize(width, height);
+            tempFBO_2.Resize(width, height);
 
-            //// Bind input texture
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, inputFBO.GetColorAttachment());
-            material->SetInt("inputTexture", 0);
-
-            material->Use();
-
-            RenderQuad(width, height);  // Render threshold to tempFBO_2
             if (m_debugMode == BloomDebugMode::ThresholdOnly)
-                return;
-
-            FrameBuffer* lastFBO = nullptr;
-
-            //// Blur passes
-            for (int passIndex = 0; passIndex < GetPassCount() * 2; ++passIndex)
             {
-                bool horizontal = (passIndex % 2) == 0;
-                FrameBuffer* targetFBO = horizontal ? &tempFBO_1 : &tempFBO_2;
-                FrameBuffer* sourceFBO = horizontal ? &tempFBO_2 : &tempFBO_1;
+                // Blit the second color attachment (bright pixels) directly to output
+                outputFBO.BindDraw();
+                inputFBO.BindRead();
 
-                targetFBO->Bind();
-                if (m_debugMode == BloomDebugMode::BlurOnly && passIndex + 1 == GetPassCount() * 2)
-                    outputFBO.Bind();
+                glReadBuffer(GL_COLOR_ATTACHMENT1);
+                glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-                CLEAR_BOUND(width, height);
-
-                material = m_blurMaterial;
-                material->SetBool("horizontal", horizontal);
-
-                //// Bind blurred input
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, sourceFBO->GetColorAttachment());
-                material->SetInt("inputTexture", 0);
-
-                material->Use();
-                RenderQuad(width, height);
-
-                lastFBO = targetFBO;
-
-                if (m_debugMode == BloomDebugMode::BlurOnly)
-                    return;
+                glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                
+                glReadBuffer(GL_COLOR_ATTACHMENT0);
+                return;
             }
 
+            FrameBuffer* targetFBO = nullptr;
+            FrameBuffer* sourceFBO = nullptr;
+            FrameBuffer* lastFBO = nullptr;
+
+            tempFBO_1.BindAndClear(width, height);
+            tempFBO_2.BindAndClear(width, height);
+            tempFBO_2.Unbind();
+
+            for (int passIndex = 0; passIndex < GetPassCount(); passIndex++)
+            {
+                // Set the target and source FBO, as well as determining if doing a horizontal pass.
+                bool horizontal = passIndex % 2 == 0;
+                targetFBO = horizontal ? &tempFBO_1 : &tempFBO_2;
+                sourceFBO = (targetFBO == &tempFBO_1) ? &tempFBO_2 : &tempFBO_1;
+
+                // Bind and clear
+                targetFBO->BindAndClear(width, height);
+
+                // Set Material
+                material = m_blurMaterial;
+                material->SetBool("horizontal", horizontal);
+                material->SetFloat("intensity", m_intensity);
+
+                // First pass uses the threshold texture from MRT, subsequent passes use temp buffers
+                if (passIndex == 0)
+                    material->SetTextureID("inputTexture", thresholdTexture, 0);
+                else
+                    material->SetTextureID("inputTexture", sourceFBO->GetColorAttachment(), 0);
+
+                material->Use();
+
+                bool returnAfter = m_debugMode == BloomDebugMode::BlurOnly && passIndex + 1 == GetPassCount();
+
+                if (returnAfter)
+                    outputFBO.Bind();
+
+                RenderQuad(width, height);
+
+                if (returnAfter)
+                    return;
+
+                lastFBO = targetFBO;
+            }
+
+            outputFBO.BindAndClear(width, height);
+
             material = m_compositeMaterial;
-
-            // Bind the original scene texture
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, inputFBO.GetColorAttachment());
-            material->SetInt("sceneTexture", 0);
-
-            // Bind the blurred bloom texture
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, lastFBO->GetColorAttachment());
-            material->SetInt("bloomTexture", 1);
-
-            outputFBO.Bind();
-            CLEAR_BOUND(width, height);
-
+            material->SetTextureID("sceneTexture", inputFBO.GetColorAttachment(), 0);
+            material->SetTextureID("bloomTexture", lastFBO->GetColorAttachment(), 1);
             material->Use();
+
+            CLEAR_BOUND(width, height);
             RenderQuad(width, height);
         }
 
@@ -147,7 +148,7 @@ namespace core
                 ImGui::Separator();
 
                 // Bloom parameters
-                ImGui::SliderFloat("Threshold", &m_bloomThreshold, 0.0f, 2.0f, "%.2f");
+                ImGui::SliderFloat("Threshold", &m_bloomThreshold, 0.0f, 20.0f, "%.2f");
                 if (ImGui::IsItemHovered())
                 {
                     ImGui::SetTooltip("Pixels brighter than this value will bloom");
@@ -170,15 +171,11 @@ namespace core
                 ImGui::Text("Total Passes: %d", GetPassCount());
                 if (m_debugMode == BloomDebugMode::ThresholdOnly)
                 {
-                    ImGui::Text("(1 threshold pass only - debug mode)");
+                    ImGui::Text("(Show the BrightPixels texture directly to screen)");
                 }
                 else if (m_debugMode == BloomDebugMode::BlurOnly)
                 {
-                    ImGui::Text("(1 threshold + %d blur passes - debug mode)", m_blurAmount * 2);
-                }
-                else
-                {
-                    ImGui::Text("(1 threshold + %d blur with final combine)", m_blurAmount * 2);
+                    ImGui::Text("(Dont Composite with the final scene. Shows only the blurring of the BrightPixels)");
                 }
 
                 ImGui::Unindent();

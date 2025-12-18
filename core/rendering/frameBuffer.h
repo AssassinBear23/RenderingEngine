@@ -29,7 +29,6 @@ namespace core
         unsigned int height = 0;    /// Height of the framebuffer in pixels
         AttachmentType attachmentType = AttachmentType::COLOR_DEPTH;   /// Type of attachments to create
         unsigned int numColorAttachments = 1;  // Number of color attachments (1-8 typically)
-        std::vector<GLenum> colorFormats;      // Individual formats for each attachment (if needed)
     };
 
     /// <summary>

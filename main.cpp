@@ -145,7 +145,7 @@ int main()
     glFrontFace(GL_CCW);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
-    glEnable(GL_BLEND);
+    //glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     core::Shader      modelShader("assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
@@ -298,7 +298,7 @@ int main()
 
     sceneManager->LoadScene("Scene 1", uboLights);
 
-    glm::vec4 clearColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
+    glm::vec4 clearColor = glm::vec4(0);
     glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 
     editorCamera = std::make_unique<core::Camera>(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f));

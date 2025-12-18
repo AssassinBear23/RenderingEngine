@@ -82,6 +82,13 @@ namespace core
 
         void SetLightUBO(GLuint ubo) { m_uboLights = ubo; }
 
+        /// <summary>
+        /// Sets the bloom threshold value for all lit materials in the scene.
+        /// This controls which pixels contribute to the bloom effect in the MRT output.
+        /// </summary>
+        /// <param name="threshold">The brightness threshold (default: 1.0)</param>
+        void SetBloomThreshold(float threshold) { m_bloomThreshold = threshold; }
+
         // Accessor methods
         const std::vector<std::shared_ptr<Renderer>>& GetRenderers() const { return m_renderers; }
         const std::vector<std::shared_ptr<Light>>& GetLights() const { return m_lights; }
@@ -131,6 +138,7 @@ namespace core
         std::vector<unsigned int> m_depthMaps;
         const int SHADOW_WIDTH = 1024;
         const int SHADOW_HEIGHT = 1024;
+        float m_bloomThreshold = 1.0f;  // Default bloom threshold
     };
 
 } // namespace core
