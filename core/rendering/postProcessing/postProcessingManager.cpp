@@ -6,7 +6,6 @@
 #include "postProcessingManager.h"
 #include <algorithm>
 #include <cstdio>
-#include <iostream>
 #include <memory>
 
 namespace core
@@ -24,6 +23,7 @@ namespace core
 
             FrameBuffer* currentInput = &inputBuffer;
             FrameBuffer* currentOutput = &tempFBO;
+            FrameBuffer* sceneInput = &inputBuffer; // Store original scene input
 
             //printf("[POSTPROCESSMANAGER] Skipped %zu/%zu effects.\n", m_effects.size() - m_enabledEffects.size(), m_effects.size());
 
@@ -31,29 +31,59 @@ namespace core
             {
                 inputBuffer.BindRead();
                 outputBuffer.BindDraw();
+
+                glReadBuffer(GL_COLOR_ATTACHMENT0);  
+                glDrawBuffer(GL_COLOR_ATTACHMENT0);  
+
                 glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 return;
             }
 
-            for (auto& effect : m_enabledEffects)
+            // Store the last processed output (for chaining effects)
+            FrameBuffer* lastProcessedOutput = nullptr;
+
+            for (size_t i = 0; i < m_enabledEffects.size(); i++)
             {
-                bool isLastEffect = (effect == m_enabledEffects.back());
+                auto& effect = m_enabledEffects[i];
+                bool isLastEffect = (i == m_enabledEffects.size() - 1);
+                
                 if (isLastEffect)
                     currentOutput = &outputBuffer;
 
-                printf("[POSTPROCESS MANAGER] Applying effect: %s (Passes: %d)\n== Parameters ==\nInput FBO name: %s\nOutput FBO name: %s\nWidth: %d\nHeight: %d\n", 
+                // Determine which input to use
+                FrameBuffer* effectInput;
+                if (effect->RequiresSceneRender()) 
+                    effectInput = sceneInput; // This effect needs the original scene input
+                else
+                    // This effect chains from the previous effect
+                    // If this is the first effect, or the previous effect used scene input, use scene input
+                    effectInput = (i == 0 || lastProcessedOutput == nullptr) ? sceneInput : lastProcessedOutput;
+
+                printf("[POSTPROCESS MANAGER] Applying effect: %s (Passes: %d)\n== Parameters ==\nInput FBO name: %s\nOutput FBO name: %s\nWidth: %d\nHeight: %d\nRequires Scene Render: %s\n", 
                        effect->GetName().c_str(), 
                        effect->GetPassCount(),
-                       currentInput->GetName().c_str(),
+                       effectInput->GetName().c_str(),
                        currentOutput->GetName().c_str(),
                        width,
-                       height
+                       height,
+                       effect->RequiresSceneRender() ? "true" : "false"
                 );
-                effect->Apply(*currentInput, *currentOutput, width, height);
-                currentInput = currentOutput;
+
+                effect->Apply(*effectInput, *currentOutput, width, height);
+                
+                // Update the last processed output for the next effect to potentially use
+                lastProcessedOutput = currentOutput;
+                
+                // For next iteration: if current output is tempFBO, switch to inputBuffer for next output
+                // Otherwise keep ping-ponging
+                if (!isLastEffect)
+                {
+                    currentInput = currentOutput;
+                    currentOutput = (currentOutput == &tempFBO) ? &inputBuffer : &tempFBO;
+                }
             }
-            std::cout << "[POSTPROCESS MANAGER] Finished processing effects." << std::endl << std::endl;
+            printf("[POSTPROCESS MANAGER] Finished processing effects.\n\n");
         }
 
         bool PostProcessingManager::AddEffect(const std::shared_ptr<PostProcessingEffectBase> effect)

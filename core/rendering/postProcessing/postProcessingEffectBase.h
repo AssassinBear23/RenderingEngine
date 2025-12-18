@@ -26,7 +26,7 @@ namespace core
             /// </summary>
             /// <param name="name">The unique name identifier for this post-processing effect.</param>
             /// <param name="material">The material containing the shader and properties used for this effect.</param>
-            PostProcessingEffectBase(const std::string& name, std::shared_ptr<Material> material, std::weak_ptr<PostProcessingManager> manager);
+            PostProcessingEffectBase(const std::string& name, std::shared_ptr<Material> material, std::weak_ptr<PostProcessingManager> manager, bool requireSceneRender);
 
             /// <summary>
             /// Performs initialization.
@@ -66,6 +66,8 @@ namespace core
             /// </summary>
             /// <returns>A constant reference to the effect's name string.</returns>
             const std::string& GetName() const { return m_name; }
+
+            bool RequiresSceneRender() const { return m_requireSceneRender; }
 #pragma endregion GetterMethods
 
         protected:
@@ -86,6 +88,8 @@ namespace core
             /// The unique name identifier for this post-processing effect.
             /// </summary>
             std::string m_name;
+
+            bool m_requireSceneRender;
 
             /// <summary>
             /// The post-processing manager that owns this effect.

@@ -8,8 +8,8 @@ namespace core
 {
     namespace postProcessing
     {
-        PostProcessingEffectBase::PostProcessingEffectBase(const std::string& name, std::shared_ptr<core::Material> material, std::weak_ptr<PostProcessingManager> manager)
-            : m_name(name), m_material(material), m_manager(manager)
+        PostProcessingEffectBase::PostProcessingEffectBase(const std::string& name, std::shared_ptr<core::Material> material, std::weak_ptr<PostProcessingManager> manager, bool requireSceneRender)
+            : m_name(name), m_material(material), m_manager(manager), m_requireSceneRender(requireSceneRender)
         {
         }
 
