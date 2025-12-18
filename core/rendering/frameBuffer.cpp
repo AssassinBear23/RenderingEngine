@@ -84,10 +84,16 @@ namespace core
 
     void FrameBuffer::Destroy()
     {
-        if (m_colorTexture)
+        // Delete all color textures
+        if (!m_colorTextures.empty())
         {
-            glDeleteTextures(1, &m_colorTexture);
-            m_colorTexture = 0;
+            glDeleteTextures(static_cast<GLsizei>(m_colorTextures.size()), m_colorTextures.data());
+            m_colorTextures.clear();
+        }
+        if (m_depthTexture)
+        {
+            glDeleteTextures(1, &m_depthTexture);
+            m_depthTexture = 0;
         }
         if (m_depthRenderbuffer)
         {
@@ -104,27 +110,35 @@ namespace core
 
     void FrameBuffer::AttachColor(const int w, const int h)
     {
-        glGenTextures(1, &m_colorTexture);
-        glBindTexture(GL_TEXTURE_2D, m_colorTexture);
+        unsigned int numAttachments = m_specs.numColorAttachments;
+        if (numAttachments == 0) numAttachments = 1;
         
-        // Determine the proper format and type based on internal format
-        GLenum format = GL_RGBA;
-        GLenum type = GL_UNSIGNED_BYTE;
+        m_colorTextures.resize(numAttachments);
+        std::vector<GLenum> drawBuffers(numAttachments);
         
-        // For floating-point formats, use GL_FLOAT
-        if (m_specs.colorFormat == GL_RGBA16F || m_specs.colorFormat == GL_RGBA32F ||
-            m_specs.colorFormat == GL_RGB16F || m_specs.colorFormat == GL_RGB32F)
+        for (unsigned int i = 0; i < numAttachments; ++i)
         {
-            type = GL_FLOAT;
-            format = (m_specs.colorFormat == GL_RGB16F || m_specs.colorFormat == GL_RGB32F) ? GL_RGB : GL_RGBA;
+            // Generate and configure texture
+            glGenTextures(1, &m_colorTextures[i]);
+            glBindTexture(GL_TEXTURE_2D, m_colorTextures[i]);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, w, h, 0, GL_RGBA, GL_FLOAT, nullptr);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            
+            // Attach to framebuffer
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, 
+                                   GL_TEXTURE_2D, m_colorTextures[i], 0);
+            
+            drawBuffers[i] = GL_COLOR_ATTACHMENT0 + i;
+            
+            printf("[FRAMEBUFFER] Attached color texture %u to '%s' at GL_COLOR_ATTACHMENT%u\n", 
+                   m_colorTextures[i], m_name.c_str(), i);
         }
         
-        glTexImage2D(GL_TEXTURE_2D, 0, m_specs.colorFormat, w, h, 0, format, type, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture, 0);
+        // CRITICAL: Tell OpenGL which color attachments to use
+        glDrawBuffers(static_cast<GLsizei>(numAttachments), drawBuffers.data());
     }
 
     void FrameBuffer::AttachDepth(const int w, const int h)
@@ -147,7 +161,7 @@ namespace core
     {
         glGenTextures(1, &m_depthTexture);
         glBindTexture(GL_TEXTURE_2D, m_depthTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, m_specs.depthFormat, w, h, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w, h, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -159,14 +173,14 @@ namespace core
         : m_name(std::move(other.m_name))
         , m_specs(std::move(other.m_specs))
         , m_fboID(other.m_fboID)
-        , m_colorTexture(other.m_colorTexture)
+        , m_colorTextures(std::move(other.m_colorTextures))
         , m_depthTexture(other.m_depthTexture)
         , m_depthRenderbuffer(other.m_depthRenderbuffer)
         , m_isValid(other.m_isValid)
     {
         // Reset the moved-from object
         other.m_fboID = 0;
-        other.m_colorTexture = 0;
+        other.m_colorTextures.clear();
         other.m_depthTexture = 0;
         other.m_depthRenderbuffer = 0;
         other.m_isValid = false;
@@ -181,14 +195,14 @@ namespace core
             m_name = std::move(other.m_name);
             m_specs = std::move(other.m_specs);
             m_fboID = other.m_fboID;
-            m_colorTexture = other.m_colorTexture;
+            m_colorTextures = std::move(other.m_colorTextures);
             m_depthTexture = other.m_depthTexture;
             m_depthRenderbuffer = other.m_depthRenderbuffer;
             m_isValid = other.m_isValid;
 
             // Reset the moved-from object
             other.m_fboID = 0;
-            other.m_colorTexture = 0;
+            other.m_colorTextures.clear();
             other.m_depthTexture = 0;
             other.m_depthRenderbuffer = 0;
             other.m_isValid = false;

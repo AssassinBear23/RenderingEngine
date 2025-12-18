@@ -14,7 +14,7 @@ namespace core
     {
         PostProcessingManager::PostProcessingManager()
         {
-            tempFBO = FrameBuffer("postProcessFBO", FrameBufferSpecifications{ 100, 100, AttachmentType::COLOR_ONLY, GL_RGBA16F, GL_DEPTH_COMPONENT });
+            tempFBO = FrameBuffer("postProcessFBO", FrameBufferSpecifications{ 100, 100, AttachmentType::COLOR_ONLY});
         }
 
         void PostProcessingManager::ProcessStack(FrameBuffer& inputBuffer, FrameBuffer& outputBuffer, const unsigned int width, const unsigned int height)

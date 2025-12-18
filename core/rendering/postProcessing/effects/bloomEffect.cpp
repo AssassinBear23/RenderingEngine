@@ -11,18 +11,15 @@ namespace core
     namespace postProcessing
     {
         BloomEffect::BloomEffect(std::weak_ptr<PostProcessingManager> manager)
-            : PostProcessingEffectBase("BloomEffect", nullptr, manager)
+            : PostProcessingEffectBase("BloomEffect", nullptr, manager, true)
         {
-            m_brightPassShader = std::make_shared<Shader>("assets/shaders/postProcessing/postProcess.vert", "assets/shaders/postProcessing/bloomBrightPass.frag");
             m_blurShader = std::make_shared<Shader>("assets/shaders/postProcessing/postProcess.vert", "assets/shaders/postProcessing/bloomBlur.frag");
             m_compositeShader = std::make_shared<Shader>("assets/shaders/postProcessing/postProcess.vert", "assets/shaders/postProcessing/composite.frag");
-
-            m_brightPassMaterial = std::make_shared<Material>(m_brightPassShader->ID);
             m_blurMaterial = std::make_shared<Material>(m_blurShader->ID);
             m_compositeMaterial = std::make_shared<Material>(m_compositeShader->ID);
 
-            tempFBO_1 = FrameBuffer("postProcessFBO_1", FrameBufferSpecifications{ 100, 100, AttachmentType::COLOR_ONLY, GL_RGBA16F, GL_DEPTH_COMPONENT });
-            tempFBO_2 = FrameBuffer("postProcessFBO_2", FrameBufferSpecifications{ 100, 100, AttachmentType::COLOR_ONLY, GL_RGBA16F, GL_DEPTH_COMPONENT });
+            tempFBO_1 = FrameBuffer("postProcessFBO_1", FrameBufferSpecifications{ 100, 100, AttachmentType::COLOR_ONLY });
+            tempFBO_2 = FrameBuffer("postProcessFBO_2", FrameBufferSpecifications{ 100, 100, AttachmentType::COLOR_ONLY });
         }
 
         int BloomEffect::GetPassCount() const

@@ -2,6 +2,7 @@
 
 #include <glad/glad.h>
 #include <string>
+#include <vector>
 
 namespace core
 {
@@ -27,8 +28,8 @@ namespace core
         unsigned int width = 0;     /// Width of the framebuffer in pixels
         unsigned int height = 0;    /// Height of the framebuffer in pixels
         AttachmentType attachmentType = AttachmentType::COLOR_DEPTH;   /// Type of attachments to create
-        GLenum colorFormat = GL_RGBA;               /// Internal format of color attachment (e.g., GL_RGBA, GL_RGB)
-        GLenum depthFormat = GL_DEPTH_COMPONENT;    /// Internal format of depth attachment (e.g., GL_DEPTH_COMPONENT, GL_DEPTH24_STENCIL8)
+        unsigned int numColorAttachments = 1;  // Number of color attachments (1-8 typically)
+        std::vector<GLenum> colorFormats;      // Individual formats for each attachment (if needed)
     };
 
     /// <summary>
@@ -136,10 +137,26 @@ namespace core
 
 #pragma region GetterMethods
         /// <summary>
-        /// Gets the OpenGL texture ID for the color attachment.
+        /// Gets the OpenGL texture ID for a specific color attachment.
         /// </summary>
-        /// <returns>The color texture ID, or 0 if no color attachment exists.</returns>
-        GLuint GetColorAttachment() const { return m_colorTexture; }
+        /// <param name="index">The index of the color attachment (0-based)</param>
+        /// <returns>The color texture ID, or 0 if index is out of range.</returns>
+        GLuint GetColorAttachment(unsigned int index = 0) const 
+        { 
+            return (index < m_colorTextures.size()) ? m_colorTextures[index] : 0;
+        }
+
+        /// <summary>
+        /// Gets all color attachment texture IDs.
+        /// </summary>
+        /// <returns>A vector of color texture IDs.</returns>
+        const std::vector<GLuint>& GetColorAttachments() const { return m_colorTextures; }
+
+        /// <summary>
+        /// Gets the number of color attachments.
+        /// </summary>
+        /// <returns>The number of color attachments.</returns>
+        unsigned int GetColorAttachmentCount() const { return static_cast<unsigned int>(m_colorTextures.size()); }
 
         /// <summary>
         /// Gets the OpenGL texture ID for the depth attachment.
@@ -232,11 +249,11 @@ namespace core
 
         static std::string m_currentBoundFBOName;
         std::string m_name;
-        FrameBufferSpecifications m_specs;  // Configuration specifications for this framebuffer
-        GLuint m_fboID = 0;                 // OpenGL framebuffer object ID
-        GLuint m_colorTexture = 0;          // OpenGL texture ID for color attachment
-        GLuint m_depthTexture = 0;          // OpenGL texture ID for depth attachment (if used)
-        GLuint m_depthRenderbuffer = 0;     // OpenGL renderbuffer ID for depth attachment (if used)
-        bool m_isValid = false;             // Indicates whether the framebuffer is complete and valid
+        FrameBufferSpecifications m_specs;          // Configuration specifications for this framebuffer
+        GLuint m_fboID = 0;                         // OpenGL framebuffer object ID
+        std::vector<GLuint> m_colorTextures;        // OpenGL texture ID for color attachment
+        GLuint m_depthTexture = 0;                  // OpenGL texture ID for depth attachment (if used)
+        GLuint m_depthRenderbuffer = 0;             // OpenGL renderbuffer ID for depth attachment (if used)
+        bool m_isValid = false;                     // Indicates whether the framebuffer is complete and valid
     };
 } // namespace core

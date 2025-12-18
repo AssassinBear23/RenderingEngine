@@ -311,9 +311,8 @@ int main()
             static_cast<unsigned int>(g_width),
             static_cast<unsigned int>(g_height),
             core::AttachmentType::COLOR_DEPTH,
-            GL_RGBA16F,
-            GL_DEPTH_COMPONENT
-    });
+            2
+        });
 
     while (!glfwWindowShouldClose(window))
     {

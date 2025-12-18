@@ -9,7 +9,7 @@ namespace core
     namespace postProcessing
     {
         InvertEffect::InvertEffect(std::weak_ptr<PostProcessingManager> manager)
-            : PostProcessingEffectBase("InvertEffect", nullptr, manager)
+            : PostProcessingEffectBase("InvertEffect", nullptr, manager, false)
         {
             m_shader = std::make_shared<Shader>("assets/shaders/postProcessing/postProcess.vert", "assets/shaders/postProcessing/invert.frag");
             m_material = std::make_shared<Material>(m_shader->ID);

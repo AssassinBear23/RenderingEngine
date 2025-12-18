@@ -2,7 +2,6 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -28,6 +27,19 @@ namespace core
         /// <param name="slot">The texture unit slot (0-31) to bind the texture to</param>
         void SetTexture(const std::string& uniformName, const std::shared_ptr<Texture>& texture, int slot) {
             m_textures[uniformName] = { texture, slot };
+        }
+
+        /// <summary>
+        /// Associates a raw OpenGL texture ID with a shader uniform and texture unit.
+        /// When Use() is called, the texture will be automatically bound to the specified slot
+        /// and the uniform will be set to that slot number.
+        /// Use this when working with framebuffer attachments or manually created textures.
+        /// </summary>
+        /// <param name="uniformName">The name of the sampler uniform in the shader (e.g., "diffuseMap")</param>
+        /// <param name="textureID">OpenGL texture ID to bind</param>
+        /// <param name="slot">The texture unit slot (0-31) to bind the texture to</param>
+        void SetTextureID(const std::string& uniformName, GLuint textureID, int slot) {
+            m_rawTextures[uniformName] = { textureID, slot };
         }
         
         std::shared_ptr<Texture> GetTexture(const std::string& uniformName) const
@@ -93,13 +105,21 @@ namespace core
 
     private:
         GLuint m_shaderProgram = 0;
+        
         struct TextureData
         {
             std::shared_ptr<Texture> texture;
             int slot = 0;
         };
 
+        struct RawTextureData
+        {
+            GLuint textureID = 0;
+            int slot = 0;
+        };
+
         std::unordered_map<std::string, TextureData> m_textures;
+        std::unordered_map<std::string, RawTextureData> m_rawTextures;
         std::unordered_map<std::string, float> m_floats;
         std::unordered_map<std::string, int> m_ints;
         std::unordered_map<std::string, bool> m_bools;

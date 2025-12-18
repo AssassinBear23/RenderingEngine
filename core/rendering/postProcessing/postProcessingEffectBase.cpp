@@ -30,16 +30,11 @@ namespace core
         {
             outputFBO.Bind();
 
-            CLEAR_BOUND(width, height, __FILE__, __LINE__);
+            CLEAR_BOUND(width, height);
 
             if (m_material)
             {
-
-                // Bind input texture to the material
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, inputFBO.GetColorAttachment());
-
-                m_material->SetInt("inputTexture", 0);
+                m_material->SetTextureID("inputTexture", inputFBO.GetColorAttachment(), 0);
                 m_material->Use();
 
                 RenderQuad(width, height);
