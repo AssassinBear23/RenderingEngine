@@ -2,8 +2,8 @@
 
 A feature-rich, OpenGL-based 3D rendering engine built with C++20, designed for real-time graphics rendering and scene management. This project showcases modern graphics programming techniques including deferred rendering, post-processing effects, and an integrated editor interface.
 
-![FinalEngine Screenshot](docs/screenshot.png)<br>
-^Replace with screenshot of actual engine^
+![Screenshot of the engine with bloom on](https://github.com/user-attachments/assets/3d94bf72-f6c1-4f70-bdcc-7b4831004764)
+
 
 ---
 ## 📖 Project Overview
