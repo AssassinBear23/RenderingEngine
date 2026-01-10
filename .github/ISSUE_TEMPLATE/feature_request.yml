@@ -1,0 +1,52 @@
+name: Feature Request
+description: Issue form for feature requests.
+labels: ["feature", "refactor", "triage needed"]
+assignees: ["AssassinBear23"]
+body:
+  - type: markdown
+    attributes:
+      value: | 
+        Have a feature you would like to see added?
+        Please fill out this feature request form with as much detail as possible to help us understand and evaluate your suggestion.
+  - type: checkboxes
+    id: existing_issue
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the feature you are requesting.
+      options:
+      - label: I have searched the existing issues and there is no existing issue for this feature.
+        required: true
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: Feature Description
+      description: Please describe the feature in detail.
+      placeholder: A clear and concise description of what the feature is.
+    validations:
+      required: true
+  - type: textarea
+    id: benefits
+    attributes:
+      label: Benefits
+      description: Please describe the benefits of this feature.
+      placeholder: A clear and concise description of the benefits this feature would provide.
+    validations:
+      required: true
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: If applicable, please provide any additional context or examples that may help explain your feature request. This could also be links to resources or similar implementations.
+      placeholder: | 
+        Any additional context or examples.
+        This could also be suggestions for architectural implementation or small code snippets for certain aspects of the feature (pseudo code also works!).
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      description: "Please confirm the following:"
+      options:
+      - label: I would like to work on/contribute to this feature myself.
+        required: false
