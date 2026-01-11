@@ -1,10 +1,17 @@
 #pragma once
-#include "Panel.h"
+#include <core/camera.h>
 #include <core/rendering/frameBuffer.h>
+#include <core/rendering/postProcessing/postProcessingManager.h>
+#include <core/rendering/shader.h>
+#include <editor/inputManager.h>
+#include <editor/panel.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <memory>
 #include <vector>
+
+namespace core { class Camera; }
 
 namespace editor
 {
@@ -15,8 +22,10 @@ namespace editor
         Editor() = default;
         ~Editor();
 
-        void init(GLFWwindow* window, const char* glsl_version = "#version 400");
+        bool init(const char* glsl_version = "#version 430");
         void shutdown();
+
+        void run();  // Main loop now lives here
 
         void beginFrame();   // ImGui new frame
         void draw();         // Dockspace + main menu + panels
@@ -30,19 +39,27 @@ namespace editor
         }
         const std::vector<std::unique_ptr<Panel>>& panels() const { return m_panels; }
 
-
         // Viewport render target (owned by ViewportPanel; Editor proxies these)
-        core::FrameBuffer* GetFrameBuffer() const;  // 0 if not ready
+        core::FrameBuffer* GetFrameBuffer() const;
         int    getViewportWidth() const;
         int    getViewportHeight() const;
         bool   viewportFocused() const;
 
-        friend class ViewportPanel; // to set m_viewport
+        GLFWwindow* GetWindow() const { return m_window; }
 
         static EditorContext editorCtx;
+
     private:
         void drawMainMenu();
         void drawDockspace();
+        void renderScene(float deltaTime);
+
+        // Scene management
+        void registerDefaultScenes();
+        void loadDefaultScene();
+        bool tryLoadSavedScene();
+
+        bool m_isRunning = false;
 
         GLFWwindow* m_window = nullptr;
         bool m_initialized = false;
@@ -57,6 +74,19 @@ namespace editor
         // Pointers to special panels we want to expose
         class ViewportPanel* m_viewport = nullptr;
 
-        friend class ViewportPanel; // to set m_viewport
+        // Editor-owned resources
+        std::shared_ptr<core::postProcessing::PostProcessingManager> m_postProcessingManager;
+        std::unique_ptr<InputManager> m_inputManager;
+        std::unique_ptr<core::Camera> m_editorCamera;
+        std::unique_ptr<core::FrameBuffer> m_sceneRenderBuffer;
+        GLuint m_uboLights = 0;
+
+        // Shaders for default scenes
+        std::unique_ptr<core::Shader> m_modelShader;
+        std::unique_ptr<core::Shader> m_textureShader;
+        std::unique_ptr<core::Shader> m_lightBulbShader;
+        std::unique_ptr<core::Shader> m_litSurfaceShader;
+
+        friend class ViewportPanel;
     };
 }

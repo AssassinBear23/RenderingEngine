@@ -1,8 +1,11 @@
-﻿//
-// Created by beer on 13/10/2025.
-//
-
-#include "camera.h"
+﻿#include "camera.h"
+#include <cmath>
+#include <glm/detail/func_common.inl>
+#include <glm/detail/func_geometric.inl>
+#include <glm/detail/func_trigonometric.inl>
+#include <glm/ext/matrix_clip_space.inl>
+#include <glm/ext/matrix_transform.inl>
+#include <glm/fwd.hpp>
 
 namespace core {
     Camera::Camera(const glm::vec3& pos, const glm::vec3& upDir)

@@ -2,12 +2,11 @@
 
 #include <fstream>
 #include <glad/glad.h>
-#include <glm/fwd.hpp>
 #include <ios>
 #include <iostream>
+#include <regex>
 #include <sstream>
 #include <string>
-#include <regex>
 
 namespace core
 {

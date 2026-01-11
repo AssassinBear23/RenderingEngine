@@ -117,7 +117,7 @@ namespace core {
         /// <param name="width">: Viewport width used for aspect ratio. </param>
         /// <param name="height">: Viewport height used for aspect ratio. </param>
         /// <returns>A 4x4 projection matrix.</returns>
-        glm::mat4 GetProjectionMatrix(float width, float height) const;
+        glm::mat4 GetProjectionMatrix(const float width, const float height) const;
 
     private:
         /// <summary>
