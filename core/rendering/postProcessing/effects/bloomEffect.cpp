@@ -75,8 +75,12 @@ namespace core
                 targetFBO = horizontal ? &tempFBO_1 : &tempFBO_2;
                 sourceFBO = (targetFBO == &tempFBO_1) ? &tempFBO_2 : &tempFBO_1;
 
-                // Bind and clear
-                targetFBO->BindAndClear(width, height);
+                bool returnAfter = m_debugMode == BloomDebugMode::BlurOnly && passIndex + 1 == GetPassCount();
+
+                if (returnAfter)
+                    outputFBO.BindAndClear(width, height);
+                else 
+                    targetFBO->BindAndClear(width, height);
 
                 // Set Material
                 material = m_blurMaterial;
@@ -91,10 +95,6 @@ namespace core
 
                 material->Use();
 
-                bool returnAfter = m_debugMode == BloomDebugMode::BlurOnly && passIndex + 1 == GetPassCount();
-
-                if (returnAfter)
-                    outputFBO.Bind();
 
                 RenderQuad(width, height);
 
