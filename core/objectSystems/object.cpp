@@ -2,56 +2,56 @@
 
 namespace core
 {
-	Object::Object()
-	{
-		// Set up the callback for isEnabled changes
-		isEnabled.SetOnChange([this](bool newValue) {
-			OnEnabledChanged(newValue);
-		});
-	}
+    Object::Object()
+    {
+        // Set up the callback for isEnabled changes
+        isEnabled.SetOnChange([this](bool newValue) {
+            OnEnabledChanged(newValue);
+            });
+    }
 
-	void Object::SetName(std::string n) { name = std::move(n); }
-	const std::string& Object::GetName() const { return name; }
+    void Object::SetName(std::string n) { name = std::move(n); }
+    const std::string& Object::GetName() const { return name; }
 
-	void Object::OnEnabledChanged(bool newValue)
-	{
-		if (m_destroyed) return;
-		
-		if (newValue)
-			OnEnable();
-		else
-			OnDisable();
-	}
+    void Object::OnEnabledChanged(bool newValue)
+    {
+        if (m_destroyed) return;
 
-	void Object::Enable()
-	{
-		isEnabled = true;
-	}
+        if (newValue)
+            OnEnable();
+        else
+            OnDisable();
+    }
 
-	void Object::Disable()
-	{
-		isEnabled = false;
-	}
+    void Object::Enable()
+    {
+        isEnabled = true;
+    }
 
-	void Object::Destroy()
-	{
-		if (m_destroyed) return;
-		m_destroyed = true; OnDestroy();
-	}
+    void Object::Disable()
+    {
+        isEnabled = false;
+    }
 
-	bool Object::IsDestroyed() const { return m_destroyed; }
+    void Object::Destroy()
+    {
+        if (m_destroyed) return;
+        m_destroyed = true; OnDestroy();
+    }
 
-	void Object::Serialize(nlohmann::json& out) const
-	{
-		out["name"] = name;
-		out["enabled"] = isEnabled.Get();
-	}
+    bool Object::IsDestroyed() const { return m_destroyed; }
 
-	void Object::Deserialize(const nlohmann::json& in)
-	{
-		if (in.contains("name")) 
-			SetName(in["name"].get<std::string>());
-		if (in.contains("enabled"))
-			isEnabled = in["enabled"].get<bool>();
-	}
+    void Object::Serialize(nlohmann::json& out) const
+    {
+        out["name"] = name;
+        out["enabled"] = isEnabled.Get();
+    }
+
+    void Object::Deserialize(const nlohmann::json& in)
+    {
+        if (in.contains("name"))
+            SetName(in["name"].get<std::string>());
+        if (in.contains("enabled"))
+            isEnabled = in["enabled"].get<bool>();
+    }
 } // namespace core

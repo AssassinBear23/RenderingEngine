@@ -545,7 +545,7 @@ namespace editor
         return false;
     }
 
-    void Editor::loadDefaultScene()
+    void Editor::loadDefaultScene() const
     {
         if (!editorCtx.sceneManager)
         {

@@ -56,7 +56,7 @@ namespace editor
 
         // Scene management
         void registerDefaultScenes();
-        void loadDefaultScene();
+        void loadDefaultScene() const;
         bool tryLoadSavedScene();
 
         bool m_isRunning = false;
