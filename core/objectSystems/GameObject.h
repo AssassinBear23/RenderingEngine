@@ -58,10 +58,12 @@ namespace core {
         const std::vector<std::shared_ptr<GameObject>>& GetChildren() const;
 
         /// <summary>
-        /// 
+        /// Create and add a component by type. Requires including the component's header.
+        /// Use this when the component type is known at compile time.
+        /// For editor/dynamic usage, prefer ComponentFactory::Create() + AddComponent(comp).
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="T">Component type to create</typeparam>
+        /// <returns>Shared pointer to the created component</returns>
         template<typename T>
         std::shared_ptr<T> AddComponent()
         {
@@ -79,6 +81,28 @@ namespace core {
         }
 
         /// <summary>
+        /// Add an already-created component to this GameObject.
+        /// </summary>
+        /// <param name="component">The component to add</param>
+        /// <returns>True if added successfully, false otherwise</returns>
+        bool AddComponent(std::shared_ptr<Component> component)
+        {
+            if (!component) return false;
+
+            // Prevent adding multiple Transform components
+            if (std::dynamic_pointer_cast<Transform>(component) && transform != nullptr)
+                return false;
+
+            // Avoid duplicates of the same instance
+            if (std::find(m_components.begin(), m_components.end(), component) == m_components.end()) {
+                component->OnAttach(std::static_pointer_cast<GameObject>(shared_from_this()));
+                m_components.push_back(component);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -93,6 +117,21 @@ namespace core {
 
             for (size_t i = 0; i < m_components.size(); ++i) {
                 if (m_components[i].get() == c.get()) {
+                    m_components[i]->OnDetach();
+                    m_components.erase(m_components.begin() + i);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        bool RemoveComponent(const std::shared_ptr<Component>& component)
+        {
+            if (!component) return false;
+            if (std::dynamic_pointer_cast<Transform>(component))
+                return false; // Prevent removing Transform component
+            for (size_t i = 0; i < m_components.size(); ++i) {
+                if (m_components[i] == component) {
                     m_components[i]->OnDetach();
                     m_components.erase(m_components.begin() + i);
                     return true;
