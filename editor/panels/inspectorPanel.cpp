@@ -5,7 +5,13 @@
 
 namespace editor
 {
-    static void ShowComponentContextMenu(std::shared_ptr<core::GameObject> selectedObj, std::shared_ptr<core::Component> comp, int componentIndex)
+    /// <summary>
+    /// Displays a context menu for component operations (Remove, Reset).
+    /// </summary>
+    /// <param name="selectedObj">The GameObject that owns the component.</param>
+    /// <param name="comp">The component to show the context menu for.</param>
+    /// <param name="componentIndex">The index of the component in the GameObject's component list.</param>
+    static void ShowComponentContextMenu(std::shared_ptr<core::GameObject> selectedObj, std::shared_ptr<core::Component> comp, const int componentIndex)
     {
         if (ImGui::BeginPopupContextItem())
         {
@@ -42,6 +48,11 @@ namespace editor
         }
     }
 
+    /// <summary>
+    /// Displays a popup menu for adding new components to the selected GameObject.
+    /// Lists all registered component types except Transform.
+    /// </summary>
+    /// <param name="selectedObj">The GameObject to add the component to.</param>
     static void ShowAddComponentContextMenu(std::shared_ptr<core::GameObject> selectedObj)
     {
         if (ImGui::BeginPopup("AddComponentPopup"))

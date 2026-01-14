@@ -58,9 +58,12 @@ namespace core {
         const std::vector<std::shared_ptr<GameObject>>& GetChildren() const;
 
         /// <summary>
-        /// Create and add a component by type. Requires including the component's header.
+        /// Create and add a component by type.
+        /// <para>
+        /// Requires including the component's header.
         /// Use this when the component type is known at compile time.
-        /// For editor/dynamic usage, prefer ComponentFactory::Create() + AddComponent(comp).
+        /// For editor/dynamic usage, prefer <c>ComponentFactory::Create() + AddComponent(comp)</c>.
+        /// </para>
         /// </summary>
         /// <typeparam name="T">Component type to create</typeparam>
         /// <returns>Shared pointer to the created component</returns>
@@ -102,6 +105,12 @@ namespace core {
             return true;
         }
 
+        /// <summary>
+        /// Add an already-created component to this GameObject at a specific index.
+        /// </summary>
+        /// <param name="component">The component to add</param>
+        /// <param name="componentIndex">The index to add the component at</param>
+        /// <returns>True if added succesfully, false otherwise</returns>
         bool AddComponent(const std::shared_ptr<Component>& component, const int componentIndex)
         {
             if (!component) return false;
