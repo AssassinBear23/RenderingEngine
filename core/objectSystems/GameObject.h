@@ -85,7 +85,7 @@ namespace core {
         /// </summary>
         /// <param name="component">The component to add</param>
         /// <returns>True if added successfully, false otherwise</returns>
-        bool AddComponent(std::shared_ptr<Component> component)
+        bool AddComponent(const std::shared_ptr<Component> component)
         {
             if (!component) return false;
 
@@ -94,12 +94,32 @@ namespace core {
                 return false;
 
             // Avoid duplicates of the same instance
-            if (std::find(m_components.begin(), m_components.end(), component) == m_components.end()) {
-                component->OnAttach(std::static_pointer_cast<GameObject>(shared_from_this()));
-                m_components.push_back(component);
-                return true;
-            }
-            return false;
+            if (std::find(m_components.begin(), m_components.end(), component) != m_components.end())
+                return false;
+
+            component->OnAttach(std::static_pointer_cast<GameObject>(shared_from_this()));
+            m_components.push_back(component);
+            return true;
+        }
+
+        bool AddComponent(const std::shared_ptr<Component>& component, const int componentIndex)
+        {
+            if (!component) return false;
+
+            // Prevent adding multiple Transform components
+            if (std::dynamic_pointer_cast<Transform>(component) && transform != nullptr)
+                return false;
+
+            // Avoid duplicates of the same instance
+            if (std::find(m_components.begin(), m_components.end(), component) != m_components.end())
+                return false;
+
+            component->OnAttach(std::static_pointer_cast<GameObject>(shared_from_this()));
+            // Clamp the index to valid range
+            size_t index = std::clamp(static_cast<size_t>(componentIndex), size_t(0), m_components.size());
+
+            m_components.emplace(m_components.begin() + index, component);
+            return true;
         }
 
         /// <summary>

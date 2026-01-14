@@ -13,6 +13,7 @@ namespace core
         
         m_currentScene = std::make_shared<core::Scene>(sceneName);
         editor::Editor::editorCtx.currentScene = m_currentScene;
+        editor::Editor::editorCtx.currentSelectedGameObject = nullptr;
         
         if(m_internalUbo != uboLights)
             m_internalUbo = uboLights;

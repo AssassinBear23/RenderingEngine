@@ -5,21 +5,37 @@
 
 namespace editor
 {
-    static void ShowComponentContextMenu(std::shared_ptr<core::GameObject> selectedObj, std::shared_ptr<core::Component> comp)
+    static void ShowComponentContextMenu(std::shared_ptr<core::GameObject> selectedObj, std::shared_ptr<core::Component> comp, int componentIndex)
     {
         if (ImGui::BeginPopupContextItem())
         {
-            if (comp->GetTypeName() != "Transform")
-                if (ImGui::MenuItem("Remove Component")) {
-                    selectedObj->RemoveComponent(comp);
-                    comp->Destroy();
-                    ImGui::CloseCurrentPopup();
-                }
+            auto compTypeName = comp->GetTypeName();
+            bool isNotSelectable = (compTypeName == "Transform"); // Prevent removing Transform component
+
+            ImGui::BeginDisabled(isNotSelectable);
+            if (ImGui::MenuItem("Remove Component")) {
+                selectedObj->RemoveComponent(comp);
+                comp->Destroy();
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndDisabled();
+
             if (ImGui::MenuItem("Reset")) { // TODO: implement reset logic per component type (currently just removes and re-adds which doesn't work for transform)
+                if (compTypeName == "Transform")
+                {
+                    auto transformCast = std::dynamic_pointer_cast<core::Transform>(comp);
+                    transformCast->position = glm::vec3(0.0f);
+                    transformCast->rotation = glm::vec3(0.0f);
+                    transformCast->scale = glm::vec3(1.0f);
+                    ImGui::CloseCurrentPopup();
+                    ImGui::EndPopup();
+                    return;
+                }
+
                 selectedObj->RemoveComponent(comp);
                 auto newComponent = core::ComponentFactory::Create(comp->GetTypeName());
                 if (newComponent)
-                    selectedObj->AddComponent(newComponent);
+                    selectedObj->AddComponent(newComponent, componentIndex);
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
@@ -64,13 +80,13 @@ namespace editor
         }
 
         // Use & operator to get pointer to the internal bool value
-        ImGui::Checkbox("##enabled", &selectedObj->isEnabled);
+        ImGui::Checkbox("##enabled_checkbox", &selectedObj->isEnabled);
         ImGui::SameLine();
         ImGui::SeparatorText(("%s", selectedObj->GetName().c_str()));
 
         // List components
         const auto& components = selectedObj->GetComponents();
-        int componentIndex = 0;
+        int componentIndex = -1;
         for (const auto& comp : components)
         {
             ImGui::Spacing();
@@ -83,17 +99,21 @@ namespace editor
                 ImGui::Checkbox("##comp_enabled", &comp->isEnabled);
                 ImGui::SameLine();
             }
-            if (ImGui::CollapsingHeader(comp->GetTypeName().c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+
+            bool nodeOpen = ImGui::CollapsingHeader(comp->GetTypeName().c_str(), ImGuiTreeNodeFlags_DefaultOpen);
+
+            if (nodeOpen)
             {
                 ImGui::Indent();
                 comp->DrawGui();
                 ImGui::Unindent();
             }
+
             ImGui::EndChild();
             ImGui::PopID();
             ImGui::PopStyleVar();
 
-            ShowComponentContextMenu(selectedObj, comp);
+            ShowComponentContextMenu(selectedObj, comp, componentIndex);
         }
 
         // Add some spacing before the button
@@ -108,7 +128,7 @@ namespace editor
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset);
 
 
-        if (ImGui::Button("Add Component"))
+        if (ImGui::Button("Add Component", ImVec2(buttonWidth, ImGui::GetFrameHeight())))
             ImGui::OpenPopup("AddComponentPopup");
 
         ShowAddComponentContextMenu(selectedObj);
