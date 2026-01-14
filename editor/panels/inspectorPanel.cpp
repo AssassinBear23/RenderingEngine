@@ -20,7 +20,7 @@ namespace editor
             }
             ImGui::EndDisabled();
 
-            if (ImGui::MenuItem("Reset")) { // TODO: implement reset logic per component type (currently just removes and re-adds which doesn't work for transform)
+            if (ImGui::MenuItem("Reset")) {
                 if (compTypeName == "Transform")
                 {
                     auto transformCast = std::dynamic_pointer_cast<core::Transform>(comp);
