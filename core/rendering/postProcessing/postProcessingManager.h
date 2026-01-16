@@ -1,5 +1,6 @@
 #pragma once
 #include "../frameBuffer.h"
+#include <glad/glad.h>
 #include <memory>
 #include <vector>
 
@@ -21,7 +22,7 @@ namespace core
             /// Constructs a new PostProcessingManager instance.
             /// </summary>
             PostProcessingManager();
-            
+
             /// <summary>
             /// Default destructor.
             /// </summary>
@@ -48,7 +49,7 @@ namespace core
             /// </summary>
             /// <param name="effect">Shared pointer to the effect to enable.</param>
             void EnableEffect(const std::shared_ptr<PostProcessingEffectBase> effect);
-            
+
             /// <summary>
             /// Disables an effect and updates the enabled effects list.
             /// </summary>
@@ -67,6 +68,15 @@ namespace core
             /// <returns>A vector containing shared pointers to all registered effects.</returns>
             std::vector<std::shared_ptr<PostProcessingEffectBase>> GetEffects() const { return m_effects; }
 
+            /// <summary>
+            /// Gets the depth attachment from the original scene render.
+            /// Effects can use this to access depth information without it being passed through the chain.
+            /// </summary>
+            /// <returns>Depth texture ID from the scene buffer, or 0 if not available.</returns>
+            GLuint GetSceneDepthTexture() const
+            {
+                return m_sceneInputBuffer ? m_sceneInputBuffer->GetDepthAttachment() : 0;
+            }
         private:
             /// <summary>
             /// Sorts the enabled effects list based on their execution priority.
@@ -74,16 +84,22 @@ namespace core
             /// </summary>
             void SortEnabledEffects();
 
+            FrameBuffer* m_sceneInputBuffer = nullptr;
+
             /// <summary>
             /// Temporary framebuffer used for ping-pong rendering between effects.
             /// </summary>
-            core::FrameBuffer tempFBO;
+            core::FrameBuffer tempFBO_1;
+            /// <summary>
+            /// Temporary framebuffer used for ping-pong rendering between effects.
+            /// </summary>
+            core::FrameBuffer tempFBO_2;
 
             /// <summary>
             /// Complete list of all registered post-processing effects.
             /// </summary>
             std::vector<std::shared_ptr<PostProcessingEffectBase>> m_effects;
-            
+
             /// <summary>
             /// Sorted list of currently enabled effects, ready for processing.
             /// </summary>

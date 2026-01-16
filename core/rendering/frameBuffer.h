@@ -121,7 +121,7 @@ namespace core
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glViewport(0, 0, width, height);
 
-            printf("%s (%d)\n\t[FRAMEBUFFER] Cleared currently bound framebuffer (name: %s) to w: %4i, h: %4i.\n", file, line, m_currentBoundFBOName.c_str(), width, height);
+            printf("%s (%d)\n\t[FRAMEBUFFER] Cleared currently bound framebuffer (name: %s) to w: %4i, h: %4i.\n\n", file, line, m_currentBoundFBOName.c_str(), width, height);
         }
 
 #define CLEAR_BOUND(width, height) core::FrameBuffer::ClearBound(width, height, __FILE__, __LINE__)

@@ -21,6 +21,7 @@ add_library(CoreEngine STATIC
     rendering/postProcessing/effects/postProcessingEffects.h
     rendering/postProcessing/effects/bloomEffect.cpp
     rendering/postProcessing/effects/invertEffect.cpp
+    rendering/postProcessing/effects/fogEffect.cpp
     
     # Object systems
     objectSystems/components/renderer.cpp

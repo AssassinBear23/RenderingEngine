@@ -14,16 +14,18 @@ namespace core
     {
         PostProcessingManager::PostProcessingManager()
         {
-            tempFBO = FrameBuffer("postProcessFBO", FrameBufferSpecifications{ 100, 100, AttachmentType::COLOR_ONLY});
+            tempFBO_1 = FrameBuffer("postProcessFBO_1", FrameBufferSpecifications{ 100, 100, AttachmentType::COLOR_ONLY});
+            tempFBO_2 = FrameBuffer("postProcessFBO_2", FrameBufferSpecifications{ 100, 100, AttachmentType::COLOR_ONLY });
         }
 
         void PostProcessingManager::ProcessStack(FrameBuffer& inputBuffer, FrameBuffer& outputBuffer, const unsigned int width, const unsigned int height)
         {
-            tempFBO.Resize(width, height);
+            m_sceneInputBuffer = &inputBuffer;
+            tempFBO_1.Resize(width, height);
+            tempFBO_2.Resize(width, height);
 
             FrameBuffer* currentInput = &inputBuffer;
-            FrameBuffer* currentOutput = &tempFBO;
-            FrameBuffer* sceneInput = &inputBuffer; // Store original scene input
+            FrameBuffer* currentOutput = &tempFBO_1;
 
             //printf("[POSTPROCESSMANAGER] Skipped %zu/%zu effects.\n", m_effects.size() - m_enabledEffects.size(), m_effects.size());
 
@@ -54,13 +56,13 @@ namespace core
                 // Determine which input to use
                 FrameBuffer* effectInput;
                 if (effect->RequiresSceneRender()) 
-                    effectInput = sceneInput; // This effect needs the original scene input
+                    effectInput = m_sceneInputBuffer; // This effect needs the original scene input
                 else
                     // This effect chains from the previous effect
                     // If this is the first effect, or the previous effect used scene input, use scene input
-                    effectInput = (i == 0 || lastProcessedOutput == nullptr) ? sceneInput : lastProcessedOutput;
+                    effectInput = (i == 0 || lastProcessedOutput == nullptr) ? m_sceneInputBuffer : lastProcessedOutput;
 
-                printf("[POSTPROCESS MANAGER] Applying effect: %s (Passes: %d)\n== Parameters ==\nInput FBO name: %s\nOutput FBO name: %s\nWidth: %d\nHeight: %d\nRequires Scene Render: %s\n", 
+                /*printf("[POSTPROCESS MANAGER] Applying effect: %s (Passes: %d)\n== Parameters ==\nInput FBO name: %s\nOutput FBO name: %s\nWidth: %d\nHeight: %d\nRequires Scene Render: %s\n", 
                        effect->GetName().c_str(), 
                        effect->GetPassCount(),
                        effectInput->GetName().c_str(),
@@ -68,7 +70,7 @@ namespace core
                        width,
                        height,
                        effect->RequiresSceneRender() ? "true" : "false"
-                );
+                );*/
 
                 effect->Apply(*effectInput, *currentOutput, width, height);
                 
@@ -80,7 +82,7 @@ namespace core
                 if (!isLastEffect)
                 {
                     currentInput = currentOutput;
-                    currentOutput = (currentOutput == &tempFBO) ? &inputBuffer : &tempFBO;
+                    currentOutput = (currentOutput == &tempFBO_1) ? &tempFBO_2 : &tempFBO_1;
                 }
             }
             printf("[POSTPROCESS MANAGER] Finished processing effects.\n\n");
@@ -119,6 +121,7 @@ namespace core
         {
             AddEffect(std::make_shared<postProcessing::BloomEffect>(weak_from_this()));
             AddEffect(std::make_shared<postProcessing::InvertEffect>(weak_from_this()));
+            AddEffect(std::make_shared<postProcessing::FogEffect>(weak_from_this()));
         }
 
         void PostProcessingManager::SortEnabledEffects()

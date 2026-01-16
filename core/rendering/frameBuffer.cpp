@@ -50,6 +50,7 @@ namespace core
         
         glBindFramebuffer(GL_FRAMEBUFFER, m_fboID);
 
+        // Using a depth texture instead of a render because a texture allows sampling in shaders (which we will be doing a few times).
         switch (m_specs.attachmentType)
         {
         case AttachmentType::COLOR_ONLY:
@@ -57,7 +58,7 @@ namespace core
             break;
         case AttachmentType::COLOR_DEPTH:
             AttachColor(w, h);
-            AttachDepth(w, h);
+            AttachDepthTexture(w, h);
             break;
         case AttachmentType::COLOR_DEPTH_STENCIL:
             AttachColor(w, h);
@@ -161,12 +162,14 @@ namespace core
     {
         glGenTextures(1, &m_depthTexture);
         glBindTexture(GL_TEXTURE_2D, m_depthTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w, h, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // Changed from CLAMP_TO_BORDER
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);  // Changed from CLAMP_TO_BORDER
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTexture, 0);
+        
+        printf("[FRAMEBUFFER] Attached depth texture %u to '%s'\n", m_depthTexture, m_name.c_str());
     }
 
     FrameBuffer::FrameBuffer(FrameBuffer&& other) noexcept

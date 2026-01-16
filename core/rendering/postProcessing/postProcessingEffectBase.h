@@ -1,8 +1,8 @@
 #pragma once
 
+#include "../../property.h"
 #include <memory>
 #include <string>
-#include "../../property.h"
 
 namespace core
 {
@@ -82,19 +82,15 @@ namespace core
             /// The material containing the shader and properties used for this effect.
             /// </summary>
             std::shared_ptr<Material> m_material;
-        
-        private:
-            /// <summary>
-            /// The unique name identifier for this post-processing effect.
-            /// </summary>
-            std::string m_name;
-
-            bool m_requireSceneRender;
 
             /// <summary>
-            /// The post-processing manager that owns this effect.
+            /// The manager that owns this effect.
             /// </summary>
             std::weak_ptr<PostProcessingManager> m_manager;
+        
+        private:
+            std::string m_name;
+            bool m_requireSceneRender;
         };
     } // namespace postProcessing
 } // namespace core
